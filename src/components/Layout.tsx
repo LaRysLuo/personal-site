@@ -8,8 +8,8 @@ import { useIsMobile } from '../utils/responsive'
 const NAV_ITEMS = [
   { path: '/', label: '主页', icon: 'icon-miles' },
   { path: '/games', label: '游戏作品', icon: 'icon-critterpedia' },
-  { path: '/blog', label: '博文', icon: 'icon-chat' },
-  { path: '/messages', label: '留言板', icon: 'icon-camera' },
+  { path: '/blog', label: '博文', icon: 'icon-design' },
+  { path: '/messages', label: '留言板', icon: 'icon-chat' },
   { path: '/friends', label: '友情链接', icon: 'icon-helicopter' },
 ]
 
