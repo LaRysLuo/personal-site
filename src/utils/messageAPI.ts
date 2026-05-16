@@ -19,11 +19,12 @@ export interface GitHubUser {
 const API_BASE = 'https://personal-site-messages.larysword.workers.dev'
 
 export async function fetchGitHubUser(username: string): Promise<GitHubUser> {
-  const res = await fetch(`https://api.github.com/users/${username}`, {
-    headers: { 'User-Agent': 'personal-site' },
+  const resp = await fetch(`${API_BASE}/api/github-user/${encodeURIComponent(username)}`, {
+    headers: { 'Cache-Control': 'no-cache' },
   })
-  if (!res.ok) throw new Error('用户不存在')
-  return res.json()
+  const data = await resp.json()
+  if (!data.ok) throw new Error('用户不存在')
+  return data.user
 }
 
 export async function loadMessages(): Promise<Message[]> {
