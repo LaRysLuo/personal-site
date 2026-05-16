@@ -27,7 +27,7 @@ steamUrl: 'https://store.steampowered.com/app/3770050/_/'
 
 ### Steam 商店
 
-🎮 **游戏已上架 Steam！请添加至愿望单**，你的支持是开发的最大动力！
+🎮 **游戏已上架 Steam！有兴趣帮忙添加愿望单**，你的支持是开发的最大动力！
 
 [❤️ 添加至愿望单](https://store.steampowered.com/app/3770050/_/)
 
