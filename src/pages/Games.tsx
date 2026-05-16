@@ -3,11 +3,13 @@ import { Icon, Select } from 'animal-island-ui'
 import GameCard from '../components/GameCard'
 import { loadGameList } from '../utils/content'
 import type { GameMeta } from '../types'
+import { useIsMobile } from '../utils/responsive'
 
 export default function Games() {
   const [games, setGames] = useState<GameMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     loadGameList()
@@ -21,9 +23,9 @@ export default function Games() {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-        <Icon name="icon-critterpedia" size={28} bounce />
-        <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-primary)' }}>游戏作品</h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: isMobile ? 16 : 24 }}>
+        <Icon name="icon-critterpedia" size={isMobile ? 24 : 28} bounce />
+        <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 900, color: 'var(--text-primary)' }}>游戏作品</h1>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
@@ -53,7 +55,7 @@ export default function Games() {
       ) : (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))',
           gap: 20,
         }}>
           {filtered.map((game) => (

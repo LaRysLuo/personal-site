@@ -1,4 +1,5 @@
 import { Icon, Card, Divider } from 'animal-island-ui'
+import { useIsMobile } from '../utils/responsive'
 
 const FRIENDS = [
   {
@@ -40,11 +41,13 @@ const FRIENDS = [
 ]
 
 export default function Friends() {
+  const isMobile = useIsMobile()
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-        <Icon name="icon-helicopter" size={28} bounce />
-        <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-primary)' }}>友情链接</h1>
+        <Icon name="icon-helicopter" size={isMobile ? 24 : 28} bounce />
+        <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 900, color: 'var(--text-primary)' }}>友情链接</h1>
       </div>
       <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 24 }}>
         一些有趣的项目和网站推荐
@@ -52,7 +55,7 @@ export default function Friends() {
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))',
         gap: 20,
       }}>
         {FRIENDS.map((link) => (
@@ -80,7 +83,7 @@ export default function Friends() {
                 e.currentTarget.style.boxShadow = 'none'
               }}
             >
-              <div style={{ fontSize: 17, fontWeight: 700, color: 'inherit', marginBottom: 4 }}>
+              <div style={{ fontSize: isMobile ? 16 : 17, fontWeight: 700, color: 'inherit', marginBottom: 4 }}>
                 {link.name}
               </div>
               <div style={{ fontSize: 12, color: 'inherit', opacity: 0.7, marginBottom: 8, wordBreak: 'break-all' }}>

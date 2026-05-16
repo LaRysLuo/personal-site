@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm'
 import { Button, Card, Divider, Icon, CodeBlock } from 'animal-island-ui'
 import { loadGame } from '../utils/content'
 import type { GameData } from '../types'
+import { useIsMobile } from '../utils/responsive'
 
 const statusLabels: Record<string, string> = {
   released: '已发布',
@@ -22,6 +23,7 @@ export default function GameDetail() {
   const { slug } = useParams<{ slug: string }>()
   const [game, setGame] = useState<GameData | null>(null)
   const [loading, setLoading] = useState(true)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     if (!slug) return
@@ -33,7 +35,7 @@ export default function GameDetail() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 80, color: 'var(--text-muted)' }}>
+      <div style={{ textAlign: 'center', padding: isMobile ? 60 : 80, color: 'var(--text-muted)' }}>
         加载中...
       </div>
     )
@@ -41,7 +43,7 @@ export default function GameDetail() {
 
   if (!game) {
     return (
-      <div style={{ textAlign: 'center', padding: 80 }}>
+      <div style={{ textAlign: 'center', padding: isMobile ? 60 : 80 }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>🏝️</div>
         <p style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 20 }}>这个作品还没有被发现...</p>
         <Link to="/games">
@@ -59,8 +61,8 @@ export default function GameDetail() {
         <div style={{
           position: 'relative',
           overflow: 'hidden',
-          minHeight: 480,
-          margin: '-32px -40px 24px',
+          minHeight: isMobile ? 340 : 480,
+          margin: isMobile ? '-20px -16px 24px' : '-32px -40px 24px',
         }}>
           <div style={{
             position: 'absolute',
@@ -78,8 +80,8 @@ export default function GameDetail() {
           <div style={{
             position: 'relative',
             zIndex: 1,
-            padding: '60px 40px 32px',
-            minHeight: 480,
+            padding: isMobile ? '40px 20px 24px' : '60px 40px 32px',
+            minHeight: isMobile ? 340 : 480,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'flex-end',
@@ -89,7 +91,13 @@ export default function GameDetail() {
                 ← 返回作品列表
               </Button>
             </Link>
-            <h1 style={{ fontSize: 30, fontWeight: 900, color: '#fff', margin: 0, textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+            <h1 style={{
+              fontSize: isMobile ? 24 : 30,
+              fontWeight: 900,
+              color: '#fff',
+              margin: 0,
+              textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+            }}>
               {meta.title}
             </h1>
             <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
@@ -130,11 +138,11 @@ export default function GameDetail() {
           </Link>
           <Card
           color={meta.status === 'released' ? 'app-green' : meta.status === 'developing' ? 'app-yellow' : 'purple'}
-          style={{ padding: 28, marginBottom: 24 }}
+          style={{ padding: isMobile ? 20 : 28, marginBottom: 24 }}
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <h1 style={{ fontSize: 28, fontWeight: 900, color: 'inherit', margin: 0 }}>{meta.title}</h1>
+              <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, color: 'inherit', margin: 0 }}>{meta.title}</h1>
               <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
                 <span style={{
                   fontSize: 12,

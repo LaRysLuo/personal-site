@@ -4,6 +4,7 @@ import { Button, Input, Card, Divider, Icon, Modal } from 'animal-island-ui'
 import { getAIConfig, saveAIConfig, clearAIConfig, buildSiteContext, searchWithAI, type ContentItem } from '../utils/aiSearch'
 import { loadGameList, loadBlogList, loadGame, loadBlogPost } from '../utils/content'
 import type { AIConfig } from '../types'
+import { useIsMobile } from '../utils/responsive'
 
 const AUTH_KEY = 'animal-island-ai-auth'
 
@@ -28,6 +29,7 @@ export default function AISearch() {
   const [settingPassword, setSettingPassword] = useState(false)
   const [newPassword, setNewPassword] = useState('')
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const existing = getAIConfig()
@@ -203,14 +205,14 @@ export default function AISearch() {
       </Modal>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-        <Icon name="icon-diy" size={28} bounce />
-        <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-primary)' }}>AI 智能搜索</h1>
+        <Icon name="icon-diy" size={isMobile ? 24 : 28} bounce />
+        <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 900, color: 'var(--text-primary)' }}>AI 智能搜索</h1>
       </div>
       <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 24 }}>
         用 AI 搜索网站的所有内容，快速找到你想要的游戏作品或文章
       </p>
 
-      <Card style={{ padding: 24, marginBottom: 24, background: 'var(--bg-card)' }}>
+      <Card style={{ padding: isMobile ? 16 : 24, marginBottom: 24, background: 'var(--bg-card)' }}>
         {!saved || editingConfig ? (
           <div>
             {editingConfig && (
@@ -237,7 +239,7 @@ export default function AISearch() {
                     onChange={(e) => setConfig({ ...config, model: e.target.value })}
                     size="large"
                   />
-                  <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
                     <Button
                       type="primary"
                       onClick={handleSaveConfig}
@@ -271,8 +273,8 @@ export default function AISearch() {
           </div>
         ) : (
           <div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-              <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+              <div style={{ flex: 1, minWidth: isMobile ? '100%' : 'auto' }}>
                 <Input
                   autoFocus
                   placeholder="问关于我网站的任何问题..."
@@ -284,12 +286,14 @@ export default function AISearch() {
                   }}
                 />
               </div>
-              <Button type="primary" onClick={loadAndSearch} loading={loading}>
-                搜索
-              </Button>
-              <Button type="default" onClick={openSettings}>
-                设置
-              </Button>
+              <div style={{ display: 'flex', gap: 8, width: isMobile ? '100%' : 'auto' }}>
+                <Button type="primary" onClick={loadAndSearch} loading={loading} style={{ flex: isMobile ? 1 : undefined }}>
+                  搜索
+                </Button>
+                <Button type="default" onClick={openSettings} style={{ flex: isMobile ? 1 : undefined }}>
+                  设置
+                </Button>
+              </div>
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
@@ -324,7 +328,7 @@ export default function AISearch() {
             )}
 
             {answer && !loading && (
-              <Card color="app-blue" style={{ padding: 20, marginTop: 12, background: 'var(--bg-card)' }}>
+              <Card color="app-blue" style={{ padding: isMobile ? 16 : 20, marginTop: 12, background: 'var(--bg-card)' }}>
                 <div style={{ fontSize: 14, lineHeight: 1.8, color: '#fff', whiteSpace: 'pre-wrap' }}>
                   {highlightLinks(answer)}
                 </div>

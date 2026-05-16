@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Button, Card, Divider, Time, Icon } from 'animal-island-ui'
+import { Button, Divider, Time, Icon } from 'animal-island-ui'
 import { loadGameList, loadBlogList } from '../utils/content'
 import type { GameMeta, BlogMeta } from '../types'
+import { useIsMobile } from '../utils/responsive'
 
 export default function Home() {
   const [games, setGames] = useState<GameMeta[]>([])
   const [posts, setPosts] = useState<BlogMeta[]>([])
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     loadGameList().then(setGames)
@@ -20,15 +22,15 @@ export default function Home() {
     <div>
       <div style={{
         position: 'relative',
-        minHeight: 420,
+        minHeight: isMobile ? 360 : 420,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
-        padding: '60px 20px 48px',
+        padding: isMobile ? '40px 16px 36px' : '60px 20px 48px',
         overflow: 'hidden',
-        margin: '-32px -40px 8px',
+        margin: isMobile ? '-20px -16px 8px' : '-32px -40px 8px',
       }}>
         <div style={{
           position: 'absolute',
@@ -44,8 +46,8 @@ export default function Home() {
           background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%)',
         }} />
         <div style={{
-          width: 110,
-          height: 110,
+          width: isMobile ? 90 : 110,
+          height: isMobile ? 90 : 110,
           borderRadius: '50%',
           overflow: 'hidden',
           border: '3px solid rgba(255,255,255,0.7)',
@@ -66,7 +68,7 @@ export default function Home() {
           />
         </div>
         <h1 style={{
-          fontSize: 32,
+          fontSize: isMobile ? 26 : 32,
           fontWeight: 900,
           color: '#ffffff',
           marginBottom: 4,
@@ -76,7 +78,7 @@ export default function Home() {
           zIndex: 1,
         }}>悠月</h1>
         <p style={{
-          fontSize: 15,
+          fontSize: isMobile ? 13 : 15,
           color: 'rgba(255,255,255,0.85)',
           marginBottom: 4,
           textShadow: '0 1px 4px rgba(0,0,0,0.25)',
@@ -86,10 +88,10 @@ export default function Home() {
           独立游戏开发者 · 像素艺术爱好者 · 用代码编织故事
         </p>
         <p style={{
-          fontSize: 14,
+          fontSize: isMobile ? 13 : 14,
           color: 'rgba(255,255,255,0.7)',
           fontStyle: 'italic',
-          marginBottom: 28,
+          marginBottom: 24,
           textShadow: '0 1px 4px rgba(0,0,0,0.2)',
           position: 'relative',
           zIndex: 1,
@@ -98,24 +100,24 @@ export default function Home() {
         </p>
         <div style={{
           display: 'flex',
-          gap: 12,
+          gap: 10,
           justifyContent: 'center',
           flexWrap: 'wrap',
           position: 'relative',
           zIndex: 1,
         }}>
           <Link to="/games">
-            <Button type="primary" size="large">
+            <Button type="primary" size={isMobile ? 'middle' : 'large'}>
               浏览游戏作品
             </Button>
           </Link>
           <Link to="/blog">
-            <Button type="primary" size="large">
+            <Button type="primary" size={isMobile ? 'middle' : 'large'}>
               阅读博文
             </Button>
           </Link>
           <Link to="/friends">
-            <Button type="primary" size="large">
+            <Button type="primary" size={isMobile ? 'middle' : 'large'}>
               友情链接
             </Button>
           </Link>
@@ -129,13 +131,13 @@ export default function Home() {
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: 24,
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+        gap: isMobile ? 20 : 24,
         marginBottom: 32,
       }}>
         <div>
           <div style={{
-            fontSize: 18,
+            fontSize: isMobile ? 16 : 18,
             fontWeight: 700,
             color: 'var(--text-primary)',
             marginBottom: 16,
@@ -143,16 +145,23 @@ export default function Home() {
             alignItems: 'center',
             gap: 8,
           }}>
-            <Icon name="icon-chat" size={22} />
+            <Icon name="icon-chat" size={isMobile ? 20 : 22} />
             <span>最新博文</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {recentPosts.map((post) => (
               <Link key={post.slug} to={`/blog/${post.slug}`} style={{ textDecoration: 'none' }}>
-                <Card style={{ padding: 16, cursor: 'pointer' }}>
+                <div style={{
+                  padding: 14,
+                  borderRadius: 12,
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-color)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.15s',
+                }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{post.title}</div>
                   <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>{post.summary}</p>
-                </Card>
+                </div>
               </Link>
             ))}
           </div>
@@ -165,7 +174,7 @@ export default function Home() {
 
         <div>
           <div style={{
-            fontSize: 18,
+            fontSize: isMobile ? 16 : 18,
             fontWeight: 700,
             color: 'var(--text-primary)',
             marginBottom: 16,
@@ -173,7 +182,7 @@ export default function Home() {
             alignItems: 'center',
             gap: 8,
           }}>
-            <Icon name="icon-critterpedia" size={22} />
+            <Icon name="icon-critterpedia" size={isMobile ? 20 : 22} />
             <span>近期游戏作品</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -185,14 +194,11 @@ export default function Home() {
                     display: 'flex',
                     cursor: 'pointer',
                     transition: 'transform 0.2s',
-                  }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)' }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}
-                  >
+                  }}>
                     {cardImg && (
                       <div style={{
-                        width: 110,
-                        minWidth: 110,
+                        width: isMobile ? 90 : 110,
+                        minWidth: isMobile ? 90 : 110,
                         aspectRatio: '1.75 / 1',
                         borderRadius: 8,
                         overflow: 'hidden',
@@ -209,7 +215,7 @@ export default function Home() {
                       flexDirection: 'column',
                       justifyContent: 'center',
                     }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{game.title}</div>
+                      <div style={{ fontSize: isMobile ? 14 : 15, fontWeight: 700, color: 'var(--text-primary)' }}>{game.title}</div>
                       <p style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--text-muted)', marginTop: 4, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                         {game.summary}
                       </p>

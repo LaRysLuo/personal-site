@@ -5,11 +5,13 @@ import remarkGfm from 'remark-gfm'
 import { Button, Card, Divider, Icon, CodeBlock } from 'animal-island-ui'
 import { loadBlogPost } from '../utils/content'
 import type { BlogData } from '../types'
+import { useIsMobile } from '../utils/responsive'
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>()
   const [post, setPost] = useState<BlogData | null>(null)
   const [loading, setLoading] = useState(true)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     if (!slug) return
@@ -21,7 +23,7 @@ export default function BlogPost() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 80, color: 'var(--text-muted)' }}>
+      <div style={{ textAlign: 'center', padding: isMobile ? 60 : 80, color: 'var(--text-muted)' }}>
         加载中...
       </div>
     )
@@ -29,7 +31,7 @@ export default function BlogPost() {
 
   if (!post) {
     return (
-      <div style={{ textAlign: 'center', padding: 80 }}>
+      <div style={{ textAlign: 'center', padding: isMobile ? 60 : 80 }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>📝</div>
         <p style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 20 }}>这篇文章好像消失了...</p>
         <Link to="/blog">
@@ -54,12 +56,12 @@ export default function BlogPost() {
         </Button>
       </Link>
 
-      <Card style={{ padding: 24, marginBottom: 24 }}>
+      <Card style={{ padding: isMobile ? 16 : 24, marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <Icon name="icon-chat" size={20} />
           <span style={{ fontSize: 13, color: '#a0936e' }}>{dateStr}</span>
         </div>
-        <h1 style={{ fontSize: 26, fontWeight: 900, color: '#725d42', margin: '0 0 8px' }}>
+        <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 900, color: '#725d42', margin: '0 0 8px' }}>
           {meta.title}
         </h1>
         {meta.tags.length > 0 && (

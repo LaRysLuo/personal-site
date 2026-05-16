@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
+import { useIsMobile } from '../utils/responsive'
 
 export default function SiteFooter() {
   const { theme } = useTheme()
+  const isMobile = useIsMobile()
 
   return (
     <footer style={{
@@ -10,15 +12,17 @@ export default function SiteFooter() {
       background: theme === 'dark'
         ? 'linear-gradient(180deg, var(--bg-secondary) 0%, #111827 100%)'
         : 'linear-gradient(180deg, var(--bg-secondary) 0%, #e8e2d6 100%)',
-      padding: '32px 40px 24px',
+      padding: isMobile ? '24px 16px 20px' : '32px 40px 24px',
     }}>
       <div style={{
         maxWidth: 900,
         margin: '0 auto',
         display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
         justifyContent: 'space-between',
+        alignItems: isMobile ? 'flex-start' : 'flex-start',
         flexWrap: 'wrap',
-        gap: 24,
+        gap: isMobile ? 16 : 24,
       }}>
         <div>
           <div style={{ fontWeight: 900, fontSize: 15, color: 'var(--text-primary)', marginBottom: 6 }}>
@@ -30,7 +34,7 @@ export default function SiteFooter() {
             用代码编织故事
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: isMobile ? 24 : 32, flexWrap: 'wrap' }}>
           <div>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>浏览</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

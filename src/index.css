@@ -182,3 +182,11 @@ a {
 .markdown-content td {
   color: var(--markdown-text);
 }
+
+@media (max-width: 767px) {
+  .markdown-content h1 { font-size: 1.3rem; }
+  .markdown-content h2 { font-size: 1.1rem; }
+  .markdown-content h3 { font-size: 1rem; }
+  .markdown-content p { line-height: 1.7; }
+  .markdown-content pre { border-radius: 8px; padding: 0.8em; }
+}
