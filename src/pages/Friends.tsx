@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Icon, Card, Divider } from 'animal-island-ui'
 import { useIsMobile } from '../utils/responsive'
 import { usePageView } from '../utils/usePageView'
@@ -116,7 +117,7 @@ export default function Friends() {
         <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
           如果你也有独立游戏、技术博客或有趣的项目，欢迎联系我交换友链！
           <br />
-          目前暂无留言功能，你可以通过 GitHub Issue 或邮件联系我。
+          现在有了<Link to="/messages" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>留言板</Link>，欢迎去那里留言交流！
         </p>
       </div>
     </div>
