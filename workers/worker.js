@@ -49,13 +49,25 @@ export default {
 
       if (request.method === 'GET' && url.pathname.startsWith('/api/github-user/')) {
         const username = url.pathname.slice('/api/github-user/'.length)
-        if (!username) throw new Error('Missing username')
+        if (!username) throw new Error('用户名不能为空')
         const ghResp = await fetch(`https://api.github.com/users/${username}`, {
           headers: { 'User-Agent': 'cloudflare-worker-personal-site' },
         })
-        if (!ghResp.ok) {
-          return new Response(JSON.stringify({ ok: false, error: 'GitHub 用户不存在' }), {
+        if (ghResp.status === 404) {
+          return new Response(JSON.stringify({
+            ok: false,
+            error: `GitHub 用户 "${username}" 不存在，请检查拼写是否正确`,
+          }), {
             status: 404,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
+          })
+        }
+        if (!ghResp.ok) {
+          return new Response(JSON.stringify({
+            ok: false,
+            error: 'GitHub API 暂时不可用，请稍后重试',
+          }), {
+            status: 502,
             headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
           })
         }
