@@ -149,7 +149,7 @@ export default function Home() {
             alignItems: 'center',
             gap: 8,
           }}>
-            <Icon name="icon-chat" size={isMobile ? 20 : 22} />
+            <Icon name="icon-design" size={isMobile ? 20 : 22} />
             <span>最新博文</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
