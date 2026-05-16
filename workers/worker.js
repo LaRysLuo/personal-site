@@ -8,6 +8,11 @@ const GITHUB_CLIENT_ID = 'Ov23liAn7Bq0xtywqQZK'
 const GITHUB_CLIENT_SECRET = 'fd4f2956dfafc80ccb6f880efe336b54b2764d17'
 const GITHUB_REDIRECT_URI = 'https://personal-site-messages.larysword.workers.dev/auth/github/callback'
 const FRONTEND_URL = 'https://larysluo.github.io/personal-site'
+const OWNER_LOGIN = 'LaRysLuo'
+const NOTIFY_EMAIL = 'larysword@gmail.com'
+
+// TODO: 注册 SendGrid 后把 API Key 填到这里
+const SENDGRID_API_KEY = ''
 
 const SESSION_TTL = 60 * 60 * 24 * 30
 const KV_KEY = 'messages'
@@ -36,6 +41,45 @@ function respond(data, status, origin) {
     status,
     headers: { 'Content-Type': 'application/json', ...cors(origin) },
   })
+}
+
+async function sendEmailNotification(name, login, content, createdAt) {
+  if (!SENDGRID_API_KEY) return
+
+  try {
+    await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SENDGRID_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        personalizations: [{
+          to: [{ email: NOTIFY_EMAIL }],
+          subject: `💬 留言板新消息 - ${name}`,
+        }],
+        from: { email: NOTIFY_EMAIL },
+        content: [{
+          type: 'text/plain',
+          value: [
+            `收到一条新的留言 ✨`,
+            ``,
+            `留言者：${name} (${login})`,
+            `时间：${new Date(createdAt).toLocaleString('zh-CN')}`,
+            ``,
+            `内容：`,
+            content,
+            ``,
+            `---`,
+            `来自 悠月的小世界 留言板`,
+            `https://larysluo.github.io/personal-site/#/messages`,
+          ].join('\n'),
+        }],
+      }),
+    })
+  } catch (e) {
+    console.error('Send email failed:', e.message)
+  }
 }
 
 export default {
@@ -125,9 +169,23 @@ export default {
 
         const msRaw = await env.MESSAGES_KV.get(KV_KEY, 'text')
         const msgs = msRaw ? JSON.parse(msRaw) : []
-        const msg = { id: uuid(), name: session.name, github: session.login, avatar: session.avatar_url, content: body.content.trim(), createdAt: new Date().toISOString() }
+        const isOwner = session.login === OWNER_LOGIN
+        const msg = {
+          id: uuid(),
+          name: session.name,
+          github: session.login,
+          avatar: session.avatar_url,
+          content: body.content.trim(),
+          createdAt: new Date().toISOString(),
+          isOwner,
+        }
         msgs.push(msg)
         await env.MESSAGES_KV.put(KV_KEY, JSON.stringify(msgs))
+
+        // 不是站长留言时发邮件通知
+        if (!isOwner) {
+          sendEmailNotification(msg.name, msg.github, msg.content, msg.createdAt)
+        }
 
         return respond({ ok: true, message: msg }, 201, origin)
       }
