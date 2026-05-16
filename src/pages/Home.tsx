@@ -33,7 +33,7 @@ export default function Home() {
         <div style={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: 'url(/images/Gemini_Generated_Image_6ie5uk6ie5uk6ie5.png)',
+          backgroundImage: `url(${import.meta.env.BASE_URL}images/Gemini_Generated_Image_6ie5uk6ie5uk6ie5.png)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           filter: 'brightness(0.6) saturate(1.1)',
@@ -55,7 +55,7 @@ export default function Home() {
           marginBottom: 18,
         }}>
           <img
-            src="/images/resu_01.png"
+            src={`${import.meta.env.BASE_URL}images/resu_01.png`}
             alt="悠月"
             style={{
               width: '100%',

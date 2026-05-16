@@ -1,5 +1,13 @@
 import type { GameMeta, BlogMeta, GameData, BlogData } from '../types'
 
+const base = typeof import.meta !== 'undefined' ? import.meta.env.BASE_URL : '/'
+
+function resolveImage(path?: string): string | undefined {
+  if (!path) return undefined
+  if (path.startsWith('http') || path.startsWith(base)) return path
+  return `${base}${path.replace(/^\//, '')}`
+}
+
 async function fetchText(path: string): Promise<string> {
   const resp = await fetch(path)
   if (!resp.ok) throw new Error(`Failed to load ${path}`)
@@ -47,9 +55,9 @@ function parseGameMeta(slug: string, raw: string): GameMeta {
     title: data.title || slug,
     date: data.date || '2025-01-01',
     tags: data.tags || [],
-    cover: data.cover,
-    cardCover: data.cardCover || data.card_cover,
-    featuredCover: data.featuredCover || data.featured_cover,
+    cover: resolveImage(data.cover),
+    cardCover: resolveImage(data.cardCover || data.card_cover),
+    featuredCover: resolveImage(data.featuredCover || data.featured_cover),
     summary: data.summary || '',
     status: data.status || 'released',
     steamUrl: data.steamUrl || data.steam_url,
@@ -63,7 +71,7 @@ function parseBlogMeta(slug: string, raw: string): BlogMeta {
     title: data.title || slug,
     date: data.date || '2025-01-01',
     tags: data.tags || [],
-    cover: data.cover,
+    cover: resolveImage(data.cover),
     summary: data.summary || '',
   }
 }
@@ -95,9 +103,9 @@ export async function loadGame(slug: string): Promise<GameData | null> {
         title: data.title || slug,
         date: data.date || '2025-01-01',
         tags: data.tags || [],
-        cover: data.cover,
-        cardCover: data.cardCover || data.card_cover,
-        featuredCover: data.featuredCover || data.featured_cover,
+        cover: resolveImage(data.cover),
+        cardCover: resolveImage(data.cardCover || data.card_cover),
+        featuredCover: resolveImage(data.featuredCover || data.featured_cover),
         summary: data.summary || '',
         status: data.status || 'released',
         steamUrl: data.steamUrl || data.steam_url,
@@ -136,7 +144,7 @@ export async function loadBlogPost(slug: string): Promise<BlogData | null> {
         title: data.title || slug,
         date: data.date || '2025-01-01',
         tags: data.tags || [],
-        cover: data.cover,
+        cover: resolveImage(data.cover),
         summary: data.summary || '',
       },
       content,
