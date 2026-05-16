@@ -314,6 +314,14 @@ export default function Messages() {
                           style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', textDecoration: 'none' }}>
                           {msg.name}
                         </a>
+                        {msg.isOwner && (
+                          <span style={{
+                            fontSize: 10, fontWeight: 700,
+                            background: '#f0d68a', color: '#8b6e2c',
+                            padding: '1px 6px', borderRadius: 4,
+                            lineHeight: '16px',
+                          }}>站长</span>
+                        )}
                         <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
                           {fmtDate(msg.createdAt)}
                         </span>
