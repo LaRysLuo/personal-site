@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Card, Divider } from 'animal-island-ui'
 import type { GameMeta } from '../types'
+import { ViewCountBadge } from './ViewCounter'
 
 const statusColors: Record<string, string> = {
   released: '#8ac68a',
@@ -63,7 +64,7 @@ function NormalCard({ game }: { game: GameMeta }) {
           {game.summary}
         </p>
         {game.tags.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12, alignItems: 'center' }}>
             {game.tags.map((tag) => (
               <span key={tag} style={{
                 fontSize: 11,
@@ -75,6 +76,7 @@ function NormalCard({ game }: { game: GameMeta }) {
                 {tag}
               </span>
             ))}
+            <ViewCountBadge pageKey={`/games/${game.slug}`} />
           </div>
         )}
       </Card>
@@ -167,6 +169,7 @@ export default function GameCard({ game }: { game: GameMeta }) {
                   {tag}
                 </span>
               ))}
+              <ViewCountBadge pageKey={`/games/${game.slug}`} />
               {game.steamUrl && (
                 <div
                   onClick={(e) => {

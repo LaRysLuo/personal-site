@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Card, Divider } from 'animal-island-ui'
 import type { BlogMeta } from '../types'
+import { ViewCountBadge } from './ViewCounter'
 
 export default function BlogCard({ post }: { post: BlogMeta }) {
   const dateStr = new Date(post.date).toLocaleDateString('zh-CN', {
@@ -51,7 +52,7 @@ export default function BlogCard({ post }: { post: BlogMeta }) {
           </p>
         )}
         {post.tags.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10, alignItems: 'center' }}>
             {post.tags.map((tag) => (
               <span key={tag} style={{
                 fontSize: 11,
@@ -63,6 +64,7 @@ export default function BlogCard({ post }: { post: BlogMeta }) {
                 #{tag}
               </span>
             ))}
+            <ViewCountBadge pageKey={`/blog/${post.slug}`} />
           </div>
         )}
       </Card>

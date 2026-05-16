@@ -5,6 +5,7 @@ import { loadGameList, loadBlogList } from '../utils/content'
 import type { GameMeta, BlogMeta } from '../types'
 import { useIsMobile } from '../utils/responsive'
 import { usePageView } from '../utils/usePageView'
+import { ViewCountBadge } from '../components/ViewCounter'
 
 export default function Home() {
   const [games, setGames] = useState<GameMeta[]>([])
@@ -163,7 +164,10 @@ export default function Home() {
                   transition: 'transform 0.15s',
                 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{post.title}</div>
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>{post.summary}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5, flex: 1 }}>{post.summary}</p>
+                    <ViewCountBadge pageKey={`/blog/${post.slug}`} />
+                  </div>
                 </div>
               </Link>
             ))}
@@ -219,9 +223,12 @@ export default function Home() {
                       justifyContent: 'center',
                     }}>
                       <div style={{ fontSize: isMobile ? 14 : 15, fontWeight: 700, color: 'var(--text-primary)' }}>{game.title}</div>
-                      <p style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--text-muted)', marginTop: 4, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      <p style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--text-muted)', marginTop: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                         {game.summary}
                       </p>
+                      <div style={{ marginTop: 6 }}>
+                        <ViewCountBadge pageKey={`/games/${game.slug}`} />
+                      </div>
                     </div>
                   </div>
                 </Link>
