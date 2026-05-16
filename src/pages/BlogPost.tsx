@@ -62,7 +62,7 @@ export default function BlogPost() {
 
       <Card style={{ padding: isMobile ? 16 : 24, marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <Icon name="icon-chat" size={20} />
+          <Icon name="icon-design" size={20} />
           <span style={{ fontSize: 13, color: '#a0936e' }}>{dateStr}</span>
         </div>
         <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 900, color: '#725d42', margin: '0 0 8px' }}>
