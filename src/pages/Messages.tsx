@@ -1,8 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Button, Input, Card, Divider, Icon } from 'animal-island-ui'
-import { loadMessages, postMessage, fetchGitHubUser, type Message, type GitHubUser } from '../utils/messageStore'
+import { loadMessages, postMessage, fetchGitHubUser, gravatarUrl, type Message, type GitHubUser, type EmailUser } from '../utils/messageStore'
 import { useIsMobile } from '../utils/responsive'
 import { usePageView } from '../utils/usePageView'
+
+type LoginMode = 'github' | 'email'
+type User = GitHubUser | EmailUser
+
+function isGithubUser(u: User): u is GitHubUser {
+  return 'login' in u
+}
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
@@ -34,9 +41,14 @@ export default function Messages() {
   const [success, setSuccess] = useState('')
   const isMobile = useIsMobile()
 
-  const [githubUser, setGithubUser] = useState<GitHubUser | null>(null)
+  const [loginMode, setLoginMode] = useState<LoginMode>('github')
+  const [user, setUser] = useState<User | null>(null)
+
   const [githubInput, setGithubInput] = useState('')
   const [githubChecking, setGithubChecking] = useState(false)
+
+  const [emailInput, setEmailInput] = useState('')
+  const [emailName, setEmailName] = useState('')
 
   usePageView('/messages')
 
@@ -62,8 +74,8 @@ export default function Messages() {
     setGithubChecking(true)
     setError('')
     try {
-      const user = await fetchGitHubUser(username)
-      setGithubUser(user)
+      const u = await fetchGitHubUser(username)
+      setUser(u)
       setGithubInput('')
     } catch {
       setError('GitHub 用户不存在，请检查用户名')
@@ -72,26 +84,60 @@ export default function Messages() {
     }
   }
 
+  const handleEmailLogin = () => {
+    setError('')
+    const email = emailInput.trim()
+    if (!email) { setError('请输入邮箱地址'); return }
+    const name = emailName.trim() || email.split('@')[0]
+    setUser({
+      email,
+      name,
+      avatar: gravatarUrl(email),
+    })
+    setEmailInput('')
+    setEmailName('')
+  }
+
   const handleLogout = () => {
-    setGithubUser(null)
+    setUser(null)
+  }
+
+  type SubmitParams = {
+    name: string
+    github?: string
+    emailHash?: string
+    avatar: string
+    content: string
+    website?: string
   }
 
   const handleSubmit = async () => {
     setError('')
     setSuccess('')
-    if (!githubUser) { setError('请先登录 GitHub'); return }
+    if (!user) { setError('请先登录'); return }
     if (!content.trim()) { setError('请填写留言内容'); return }
     if (content.trim().length > 2000) { setError('留言内容不能超过 2000 个字符'); return }
 
+    const params: SubmitParams = {
+      name: isGithubUser(user) ? (user.name || user.login) : user.name,
+      avatar: isGithubUser(user) ? user.avatar_url : user.avatar,
+      content: content.trim(),
+      website: website.trim() || undefined,
+    }
+
+    if (isGithubUser(user)) {
+      params.github = user.login
+    } else {
+      params.emailHash = user.email.toLowerCase().trim()
+      if (!params.website) {
+        const domain = user.email.split('@')[1]
+        params.website = `mailto:${user.email}`
+      }
+    }
+
     setSubmitting(true)
     try {
-      const msg = await postMessage({
-        name: githubUser.name || githubUser.login,
-        github: githubUser.login,
-        avatar: githubUser.avatar_url,
-        content: content.trim(),
-        website: website.trim() || undefined,
-      })
+      const msg = await postMessage(params)
       setMessages([msg, ...messages])
       setContent('')
       setWebsite('')
@@ -102,6 +148,153 @@ export default function Messages() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const loginPanel = () => {
+    if (user) {
+      return (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '10px 14px',
+          borderRadius: 12,
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border-color)',
+        }}>
+          <img
+            src={isGithubUser(user) ? user.avatar_url : user.avatar}
+            alt={user.name}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              border: '2px solid var(--border-color)',
+            }}
+          />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
+              {user.name}
+            </div>
+            {isGithubUser(user) ? (
+              <a
+                href={user.html_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}
+              >
+                @{user.login}
+              </a>
+            ) : (
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                ✉️ {(user as EmailUser).email}
+              </span>
+            )}
+          </div>
+          <Button type="link" onClick={handleLogout} style={{ fontSize: 12, padding: 0 }}>
+            切换账号
+          </Button>
+        </div>
+      )
+    }
+
+    if (loginMode === 'github') {
+      return (
+        <>
+          <div style={{
+            display: 'flex',
+            gap: 8,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}>
+            <Input
+              placeholder="GitHub 用户名"
+              value={githubInput}
+              onChange={(e) => setGithubInput(e.target.value)}
+              size="large"
+              style={{ flex: 1, minWidth: 180 }}
+              onKeyDown={(e) => e.key === 'Enter' && handleCheckGithub()}
+            />
+            <Button
+              type="primary"
+              onClick={handleCheckGithub}
+              loading={githubChecking}
+              disabled={!githubInput.trim() || githubChecking}
+            >
+              登录
+            </Button>
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
+            或者{' '}
+            <button
+              onClick={() => setLoginMode('email')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#889df0',
+                cursor: 'pointer',
+                fontSize: 12,
+                textDecoration: 'underline',
+                padding: 0,
+              }}
+            >
+              使用邮箱登录
+            </button>
+          </div>
+        </>
+      )
+    }
+
+    return (
+      <>
+        <div style={{
+          display: 'flex',
+          gap: 8,
+          alignItems: 'center',
+          flexWrap: 'wrap',
+        }}>
+          <Input
+            placeholder="你的昵称"
+            value={emailName}
+            onChange={(e) => setEmailName(e.target.value)}
+            size="large"
+            style={{ flex: 1, minWidth: 150 }}
+          />
+          <Input
+            placeholder="邮箱地址 *"
+            value={emailInput}
+            onChange={(e) => setEmailInput(e.target.value)}
+            size="large"
+            style={{ flex: 1, minWidth: 200 }}
+            onKeyDown={(e) => e.key === 'Enter' && handleEmailLogin()}
+          />
+          <Button
+            type="primary"
+            onClick={handleEmailLogin}
+            disabled={!emailInput.trim()}
+          >
+            登录
+          </Button>
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
+          或者{' '}
+          <button
+            onClick={() => setLoginMode('github')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#889df0',
+              cursor: 'pointer',
+              fontSize: 12,
+              textDecoration: 'underline',
+              padding: 0,
+            }}
+          >
+            使用 GitHub 登录
+          </button>
+        </div>
+      </>
+    )
   }
 
   return (
@@ -116,71 +309,9 @@ export default function Messages() {
 
       <Card style={{ padding: isMobile ? 16 : 24, marginBottom: 24, background: 'var(--bg-card)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {loginPanel()}
 
-          {!githubUser ? (
-            <div style={{
-              display: 'flex',
-              gap: 8,
-              alignItems: 'center',
-              flexWrap: 'wrap',
-            }}>
-              <Input
-                placeholder="输入 GitHub 用户名以登录"
-                value={githubInput}
-                onChange={(e) => setGithubInput(e.target.value)}
-                size="large"
-                style={{ flex: 1, minWidth: 200 }}
-                onKeyDown={(e) => e.key === 'Enter' && handleCheckGithub()}
-              />
-              <Button
-                type="primary"
-                onClick={handleCheckGithub}
-                loading={githubChecking}
-                disabled={!githubInput.trim() || githubChecking}
-              >
-                登录
-              </Button>
-            </div>
-          ) : (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '10px 14px',
-              borderRadius: 12,
-              background: 'var(--bg-elevated)',
-              border: '1px solid var(--border-color)',
-            }}>
-              <img
-                src={githubUser.avatar_url}
-                alt={githubUser.login}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  border: '2px solid var(--border-color)',
-                }}
-              />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {githubUser.name || githubUser.login}
-                </div>
-                <a
-                  href={githubUser.html_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}
-                >
-                  @{githubUser.login}
-                </a>
-              </div>
-              <Button type="link" onClick={handleLogout} style={{ fontSize: 12, padding: 0 }}>
-                切换账号
-              </Button>
-            </div>
-          )}
-
-          {githubUser && (
+          {user && (
             <>
               <Input
                 placeholder="网站（可选）"
@@ -324,6 +455,7 @@ export default function Messages() {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 6,
+                        flexWrap: 'wrap',
                       }}>
                         {msg.github ? (
                           <a
@@ -338,12 +470,20 @@ export default function Messages() {
                             </svg>
                           </a>
                         ) : (
-                          msg.name
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            {msg.name}
+                            <span style={{ fontSize: 10, opacity: 0.4 }}>✉️</span>
+                          </span>
                         )}
-                        {msg.website && msg.website !== `https://github.com/${msg.github}` && (
+                        {msg.website && !msg.website.startsWith('mailto:') && (
                           <a href={msg.website} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#889df0', textDecoration: 'none' }}>
                             🌐
                           </a>
+                        )}
+                        {msg.email && (
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)', opacity: 0.5 }}>
+                            ({msg.email.slice(0, 6)}...)
+                          </span>
                         )}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>

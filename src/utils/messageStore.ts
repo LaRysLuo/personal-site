@@ -1,7 +1,8 @@
 export interface Message {
   id: string
   name: string
-  github: string
+  github?: string
+  email?: string
   avatar: string
   content: string
   website?: string
@@ -13,6 +14,12 @@ export interface GitHubUser {
   name: string
   avatar_url: string
   html_url: string
+}
+
+export interface EmailUser {
+  email: string
+  name: string
+  avatar: string
 }
 
 const OWNER = 'LaRysLuo'
@@ -46,6 +53,25 @@ function base64Encode(str: string): string {
   return btoa(binary)
 }
 
+function hex(buffer: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+async function md5Hash(str: string): Promise<string> {
+  const data = new TextEncoder().encode(str.toLowerCase().trim())
+  const hash = await crypto.subtle.digest('MD5', data)
+  return hex(hash)
+}
+
+export function gravatarUrl(email: string, size = 100): string {
+  const hash = email.toLowerCase().trim()
+  return `https://www.gravatar.com/avatar/${hash}?d=identicon&s=${size}`
+}
+
+export function gravatarUrlHash(emailHash: string, size = 100): string {
+  return `https://www.gravatar.com/avatar/${emailHash}?d=identicon&s=${size}`
+}
+
 export async function fetchGitHubUser(username: string): Promise<GitHubUser> {
   const res = await fetch(`https://api.github.com/users/${username}`, {
     headers: { 'User-Agent': 'personal-site' },
@@ -70,7 +96,9 @@ export async function loadMessages(): Promise<Message[]> {
 
 export async function postMessage(params: {
   name: string
-  github: string
+  github?: string
+  email?: string
+  emailHash?: string
   avatar: string
   content: string
   website?: string
@@ -81,25 +109,28 @@ export async function postMessage(params: {
   const message: Message = {
     id,
     name: params.name,
-    github: params.github,
     avatar: params.avatar || '',
     website: params.website || undefined,
     content: params.content.trim(),
     createdAt: now,
   }
 
-  const mdContent = [
+  if (params.github) message.github = params.github
+  if (params.emailHash) message.email = params.emailHash
+
+  const mdLines = [
     '---',
     `id: "${message.id}"`,
     `name: "${message.name}"`,
-    `github: "${message.github}"`,
+    message.github ? `github: "${message.github}"` : '',
+    message.email ? `email: "${message.email}"` : '',
     `avatar: "${message.avatar}"`,
     message.website ? `website: "${message.website}"` : '',
     `createdAt: "${message.createdAt}"`,
     '---',
     '',
     message.content,
-  ].join('\n')
+  ].filter(Boolean).join('\n')
 
   // Commit the .md file
   const mdFile = `${MESSAGES_DIR}/${id}.md`
@@ -107,7 +138,7 @@ export async function postMessage(params: {
     method: 'PUT',
     body: JSON.stringify({
       message: `feat: new message from ${message.name}`,
-      content: base64Encode(mdContent),
+      content: base64Encode(mdLines),
     }),
   })
 
