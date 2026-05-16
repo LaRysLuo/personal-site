@@ -23,7 +23,11 @@ export default function Messages() {
     script.setAttribute('data-reactions-enabled', '1')
     script.setAttribute('data-emit-metadata', '0')
     script.setAttribute('data-input-position', 'bottom')
-    script.setAttribute('data-theme', 'light')
+    const theme = JSON.stringify({
+      light: 'https://larysluo.github.io/personal-site/giscus-theme.css',
+      dark: 'https://larysluo.github.io/personal-site/giscus-theme-dark.css',
+    })
+    script.setAttribute('data-theme', theme)
     script.setAttribute('data-lang', 'zh-CN')
     script.setAttribute('crossorigin', 'anonymous')
     script.async = true
