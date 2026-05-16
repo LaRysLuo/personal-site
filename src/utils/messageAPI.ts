@@ -5,6 +5,7 @@ export interface Message {
   avatar: string
   content: string
   createdAt: string
+  isOwner?: boolean
 }
 
 export interface SessionUser {
