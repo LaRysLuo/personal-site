@@ -146,7 +146,10 @@ export default {
           const v = await env.MESSAGES_KV.get(KV_KEY, 'text')
           if (v) raw = v
         }
-        const msgs = JSON.parse(raw)
+        const msgs = JSON.parse(raw).map((m) => ({
+          ...m,
+          isOwner: m.github === OWNER_LOGIN,
+        }))
         msgs.reverse()
         return respond({ ok: true, messages: msgs }, 200, origin)
       }
