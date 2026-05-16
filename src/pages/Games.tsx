@@ -4,12 +4,15 @@ import GameCard from '../components/GameCard'
 import { loadGameList } from '../utils/content'
 import type { GameMeta } from '../types'
 import { useIsMobile } from '../utils/responsive'
+import { usePageView } from '../utils/usePageView'
 
 export default function Games() {
   const [games, setGames] = useState<GameMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const isMobile = useIsMobile()
+
+  usePageView('/games')
 
   useEffect(() => {
     loadGameList()

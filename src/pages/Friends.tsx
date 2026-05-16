@@ -1,5 +1,6 @@
 import { Icon, Card, Divider } from 'animal-island-ui'
 import { useIsMobile } from '../utils/responsive'
+import { usePageView } from '../utils/usePageView'
 
 const FRIENDS = [
   {
@@ -42,6 +43,8 @@ const FRIENDS = [
 
 export default function Friends() {
   const isMobile = useIsMobile()
+
+  usePageView('/friends')
 
   return (
     <div>

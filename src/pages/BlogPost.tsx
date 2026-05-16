@@ -6,12 +6,16 @@ import { Button, Card, Divider, Icon, CodeBlock } from 'animal-island-ui'
 import { loadBlogPost } from '../utils/content'
 import type { BlogData } from '../types'
 import { useIsMobile } from '../utils/responsive'
+import { usePageView } from '../utils/usePageView'
+import { PageViewCounter } from '../components/ViewCounter'
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>()
   const [post, setPost] = useState<BlogData | null>(null)
   const [loading, setLoading] = useState(true)
   const isMobile = useIsMobile()
+
+  usePageView(slug ? `/blog/${slug}` : undefined)
 
   useEffect(() => {
     if (!slug) return
@@ -65,7 +69,7 @@ export default function BlogPost() {
           {meta.title}
         </h1>
         {meta.tags.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             {meta.tags.map((tag) => (
               <span key={tag} style={{
                 fontSize: 11,
@@ -77,6 +81,7 @@ export default function BlogPost() {
                 #{tag}
               </span>
             ))}
+            <PageViewCounter pageKey={`/blog/${slug}`} />
           </div>
         )}
       </Card>
@@ -105,6 +110,10 @@ export default function BlogPost() {
         >
           {content}
         </ReactMarkdown>
+      </div>
+
+      <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'center' }}>
+        <PageViewCounter pageKey={`/blog/${slug}`} />
       </div>
     </div>
   )

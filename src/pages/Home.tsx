@@ -4,11 +4,14 @@ import { Button, Divider, Time, Icon } from 'animal-island-ui'
 import { loadGameList, loadBlogList } from '../utils/content'
 import type { GameMeta, BlogMeta } from '../types'
 import { useIsMobile } from '../utils/responsive'
+import { usePageView } from '../utils/usePageView'
 
 export default function Home() {
   const [games, setGames] = useState<GameMeta[]>([])
   const [posts, setPosts] = useState<BlogMeta[]>([])
   const isMobile = useIsMobile()
+
+  usePageView('/')
 
   useEffect(() => {
     loadGameList().then(setGames)

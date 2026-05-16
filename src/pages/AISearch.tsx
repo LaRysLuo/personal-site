@@ -5,6 +5,7 @@ import { getAIConfig, saveAIConfig, clearAIConfig, buildSiteContext, searchWithA
 import { loadGameList, loadBlogList, loadGame, loadBlogPost } from '../utils/content'
 import type { AIConfig } from '../types'
 import { useIsMobile } from '../utils/responsive'
+import { usePageView } from '../utils/usePageView'
 
 const AUTH_KEY = 'animal-island-ai-auth'
 
@@ -30,6 +31,8 @@ export default function AISearch() {
   const [newPassword, setNewPassword] = useState('')
   const navigate = useNavigate()
   const isMobile = useIsMobile()
+
+  usePageView('/ai-search')
 
   useEffect(() => {
     const existing = getAIConfig()

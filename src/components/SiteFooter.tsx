@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import { useIsMobile } from '../utils/responsive'
+import { SiteViewCounter } from './ViewCounter'
 
 export default function SiteFooter() {
   const { theme } = useTheme()
@@ -65,6 +66,9 @@ export default function SiteFooter() {
         opacity: 0.7,
       }}>
         &copy; {new Date().getFullYear()} 悠月的小世界 · Built with ❤️
+      </div>
+      <div style={{ textAlign: 'center', marginTop: 8 }}>
+        <SiteViewCounter />
       </div>
     </footer>
   )

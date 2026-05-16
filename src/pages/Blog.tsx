@@ -4,12 +4,15 @@ import BlogCard from '../components/BlogCard'
 import { loadBlogList } from '../utils/content'
 import type { BlogMeta } from '../types'
 import { useIsMobile } from '../utils/responsive'
+import { usePageView } from '../utils/usePageView'
 
 export default function Blog() {
   const [posts, setPosts] = useState<BlogMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const isMobile = useIsMobile()
+
+  usePageView('/blog')
 
   useEffect(() => {
     loadBlogList()

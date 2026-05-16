@@ -6,6 +6,8 @@ import { Button, Card, Divider, Icon, CodeBlock } from 'animal-island-ui'
 import { loadGame } from '../utils/content'
 import type { GameData } from '../types'
 import { useIsMobile } from '../utils/responsive'
+import { usePageView } from '../utils/usePageView'
+import { PageViewCounter } from '../components/ViewCounter'
 
 const statusLabels: Record<string, string> = {
   released: '已发布',
@@ -24,6 +26,8 @@ export default function GameDetail() {
   const [game, setGame] = useState<GameData | null>(null)
   const [loading, setLoading] = useState(true)
   const isMobile = useIsMobile()
+
+  usePageView(slug ? `/games/${slug}` : undefined)
 
   useEffect(() => {
     if (!slug) return
@@ -199,6 +203,10 @@ export default function GameDetail() {
         >
           {content}
         </ReactMarkdown>
+      </div>
+
+      <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'center' }}>
+        <PageViewCounter pageKey={`/games/${slug}`} />
       </div>
     </div>
   )
