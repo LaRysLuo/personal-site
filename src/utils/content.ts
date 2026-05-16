@@ -8,8 +8,13 @@ function resolveImage(path?: string): string | undefined {
   return `${base}${path.replace(/^\//, '')}`
 }
 
+function contentPath(path: string): string {
+  if (path.startsWith('http') || path.startsWith(base)) return path
+  return `${base}${path.replace(/^\//, '')}`
+}
+
 async function fetchText(path: string): Promise<string> {
-  const resp = await fetch(path)
+  const resp = await fetch(contentPath(path))
   if (!resp.ok) throw new Error(`Failed to load ${path}`)
   return resp.text()
 }
@@ -77,7 +82,7 @@ function parseBlogMeta(slug: string, raw: string): BlogMeta {
 }
 
 export async function loadGameList(): Promise<GameMeta[]> {
-  const resp = await fetch(`/content/games/index.json?t=${Date.now()}`)
+  const resp = await fetch(contentPath(`/content/games/index.json?t=${Date.now()}`))
   const slugs: string[] = await resp.json()
   const metas: GameMeta[] = []
 
@@ -118,7 +123,7 @@ export async function loadGame(slug: string): Promise<GameData | null> {
 }
 
 export async function loadBlogList(): Promise<BlogMeta[]> {
-  const resp = await fetch(`/content/blog/index.json?t=${Date.now()}`)
+  const resp = await fetch(contentPath(`/content/blog/index.json?t=${Date.now()}`))
   const slugs: string[] = await resp.json()
   const metas: BlogMeta[] = []
 
