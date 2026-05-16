@@ -9,7 +9,7 @@ function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': corsOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Cache-Control',
     'Access-Control-Max-Age': '86400',
   }
 }
