@@ -115,7 +115,7 @@ export default function Messages() {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-        <Icon name="icon-chat" size={isMobile ? 24 : 28} bounce />
+        <Icon name="icon-camera" size={isMobile ? 24 : 28} bounce />
         <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 900, color: 'var(--text-primary)' }}>留言板</h1>
       </div>
       <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 24 }}>
