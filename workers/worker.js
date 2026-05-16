@@ -16,6 +16,14 @@ function corsHeaders(origin) {
 
 const KV_KEY = 'messages'
 
+function uuid() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+  })
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url)
@@ -26,8 +34,21 @@ export default {
     }
 
     try {
+      if (request.method === 'GET' && url.pathname === '/api/messages') {
+        let raw = '[]'
+        if (env.MESSAGES_KV) {
+          const val = await env.MESSAGES_KV.get(KV_KEY, 'text')
+          if (val) raw = val
+        }
+        const messages = JSON.parse(raw)
+        messages.reverse()
+        return new Response(JSON.stringify({ ok: true, messages }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
+        })
+      }
+
       if (request.method === 'GET' && url.pathname.startsWith('/api/github-user/')) {
-        const username = url.pathname.replace('/api/github-user/', '')
+        const username = url.pathname.slice('/api/github-user/'.length)
         if (!username) throw new Error('Missing username')
         const ghResp = await fetch(`https://api.github.com/users/${username}`, {
           headers: { 'User-Agent': 'cloudflare-worker-personal-site' },
@@ -53,15 +74,6 @@ export default {
         })
       }
 
-      if (request.method === 'GET' && url.pathname === '/api/messages') {
-        const raw = await env.MESSAGES_KV.get(KV_KEY, 'text')
-        const messages = raw ? JSON.parse(raw) : []
-        messages.reverse()
-        return new Response(JSON.stringify({ ok: true, messages }), {
-          headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
-        })
-      }
-
       if (request.method === 'POST' && url.pathname === '/api/messages') {
         const body = await request.json()
         if (!body.name || !body.github) {
@@ -76,17 +88,15 @@ export default {
             headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
           })
         }
-        if (body.website && body.website.length > 200) {
-          return new Response(JSON.stringify({ ok: false, error: '网站地址过长' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
-          })
-        }
 
-        const raw = await env.MESSAGES_KV.get(KV_KEY, 'text')
-        const messages = raw ? JSON.parse(raw) : []
+        let raw = '[]'
+        if (env.MESSAGES_KV) {
+          const val = await env.MESSAGES_KV.get(KV_KEY, 'text')
+          if (val) raw = val
+        }
+        const messages = JSON.parse(raw)
         const message = {
-          id: crypto.randomUUID(),
+          id: uuid(),
           name: body.name,
           github: body.github,
           avatar: body.avatar || '',
@@ -95,7 +105,9 @@ export default {
           createdAt: new Date().toISOString(),
         }
         messages.push(message)
-        await env.MESSAGES_KV.put(KV_KEY, JSON.stringify(messages))
+        if (env.MESSAGES_KV) {
+          await env.MESSAGES_KV.put(KV_KEY, JSON.stringify(messages))
+        }
 
         return new Response(JSON.stringify({ ok: true, message }), {
           status: 201,
