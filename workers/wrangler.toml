@@ -1,0 +1,9 @@
+name = "personal-site-messages"
+main = "src/index.ts"
+
+[[kv_namespaces]]
+binding = "MESSAGES_KV"
+id = "your-kv-namespace-id-here"
+
+[env.production]
+vars = { ENVIRONMENT = "production" }

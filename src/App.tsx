@@ -6,6 +6,7 @@ import GameDetail from './pages/GameDetail'
 import Blog from './pages/Blog'
 import BlogPost from './pages/BlogPost'
 import Friends from './pages/Friends'
+import Messages from './pages/Messages'
 import AISearch from './pages/AISearch'
 import NotFound from './pages/NotFound'
 
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
         <Route path="/friends" element={<Friends />} />
+        <Route path="/messages" element={<Messages />} />
         <Route path="/ai-search" element={<AISearch />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
