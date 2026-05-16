@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Input, Card, Divider, Icon, Modal } from 'animal-island-ui'
 import { getAIConfig, saveAIConfig, clearAIConfig, buildSiteContext, searchWithAI, type ContentItem } from '../utils/aiSearch'
@@ -27,7 +27,6 @@ export default function AISearch() {
   const [authError, setAuthError] = useState(false)
   const [settingPassword, setSettingPassword] = useState(false)
   const [newPassword, setNewPassword] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -36,7 +35,6 @@ export default function AISearch() {
       setConfig(existing)
       setSaved(true)
     }
-    setTimeout(() => inputRef.current?.focus(), 100)
   }, [])
 
   const loadAndSearch = async () => {
@@ -276,7 +274,7 @@ export default function AISearch() {
             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
               <div style={{ flex: 1 }}>
                 <Input
-                  ref={inputRef}
+                  autoFocus
                   placeholder="问关于我网站的任何问题..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}

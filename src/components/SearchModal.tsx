@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Modal, Input, Button, Card, Divider, Icon } from 'animal-island-ui'
-import { getAIConfig, saveAIConfig, clearAIConfig, buildSiteContext, searchWithAI } from '../utils/aiSearch'
-import { loadGameList, loadBlogList } from '../utils/content'
-import type { SearchResult, AIConfig } from '../types'
+import { getAIConfig, saveAIConfig, clearAIConfig, buildSiteContext, searchWithAI, type ContentItem } from '../utils/aiSearch'
+import { loadGameList, loadBlogList, loadGame, loadBlogPost } from '../utils/content'
+import type { AIConfig } from '../types'
 
 export default function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('')
@@ -13,7 +13,6 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
   const [config, setConfig] = useState<AIConfig>({ apiKey: '', baseUrl: '', model: '' })
   const [saved, setSaved] = useState(false)
   const navigate = useNavigate()
-  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (open) {
@@ -25,7 +24,6 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
       setQuery('')
       setAnswer('')
       setShowSettings(false)
-      setTimeout(() => inputRef.current?.focus(), 100)
     }
   }, [open])
 
@@ -35,12 +33,33 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
     setAnswer('')
 
     try {
-      const [games, blogs] = await Promise.all([loadGameList(), loadBlogList()])
-      const results: SearchResult[] = [
-        ...games.map((g) => ({ title: g.title, type: 'game' as const, slug: g.slug, summary: g.summary })),
-        ...blogs.map((b) => ({ title: b.title, type: 'blog' as const, slug: b.slug, summary: b.summary })),
-      ]
-      const context = buildSiteContext(results)
+      const [gameList, blogList] = await Promise.all([loadGameList(), loadBlogList()])
+
+      const items: ContentItem[] = []
+
+      for (const g of gameList) {
+        const full = await loadGame(g.slug)
+        items.push({
+          title: g.title,
+          type: 'game',
+          slug: g.slug,
+          summary: g.summary,
+          body: full?.content || '',
+        })
+      }
+
+      for (const b of blogList) {
+        const full = await loadBlogPost(b.slug)
+        items.push({
+          title: b.title,
+          type: 'blog',
+          slug: b.slug,
+          summary: b.summary,
+          body: full?.content || '',
+        })
+      }
+
+      const context = buildSiteContext(items)
       const aiConfig = saved ? config : getAIConfig()!
       const response = await searchWithAI(query, context, aiConfig)
       setAnswer(response)
@@ -146,7 +165,7 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
             <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
               <div style={{ flex: 1 }}>
                 <Input
-                  ref={inputRef}
+                  autoFocus
                   placeholder="问关于我网站的任何问题..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
