@@ -4,7 +4,6 @@ import { loadMessages, postMessage, fetchGitHubUser, gravatarUrl, type Message, 
 import { useIsMobile } from '../utils/responsive'
 import { usePageView } from '../utils/usePageView'
 
-type LoginMode = 'github' | 'email'
 type User = GitHubUser | EmailUser
 
 function isGithubUser(u: User): u is GitHubUser {
@@ -41,14 +40,9 @@ export default function Messages() {
   const [success, setSuccess] = useState('')
   const isMobile = useIsMobile()
 
-  const [loginMode, setLoginMode] = useState<LoginMode>('github')
   const [user, setUser] = useState<User | null>(null)
-
-  const [githubInput, setGithubInput] = useState('')
-  const [githubChecking, setGithubChecking] = useState(false)
-
-  const [emailInput, setEmailInput] = useState('')
-  const [emailName, setEmailName] = useState('')
+  const [loginInput, setLoginInput] = useState('')
+  const [loginChecking, setLoginChecking] = useState(false)
 
   usePageView('/messages')
 
@@ -57,8 +51,8 @@ export default function Messages() {
       setLoading(true)
       const data = await loadMessages()
       setMessages(data)
-    } catch (e: any) {
-      setError(e.message)
+    } catch {
+      setError('加载留言失败')
     } finally {
       setLoading(false)
     }
@@ -68,47 +62,31 @@ export default function Messages() {
     load()
   }, [load])
 
-  const handleCheckGithub = async () => {
-    const username = githubInput.trim()
-    if (!username) return
-    setGithubChecking(true)
+  const handleLogin = async () => {
+    const input = loginInput.trim()
+    if (!input) return
     setError('')
+    setLoginChecking(true)
     try {
-      const u = await fetchGitHubUser(username)
-      setUser(u)
-      setGithubInput('')
+      if (input.includes('@')) {
+        const name = input.split('@')[0]
+        const avatar = await gravatarUrl(input)
+        setUser({ email: input, name, avatar } as EmailUser)
+        setLoginInput('')
+      } else {
+        const u = await fetchGitHubUser(input)
+        setUser(u)
+        setLoginInput('')
+      }
     } catch {
-      setError('GitHub 用户不存在，请检查用户名')
+      setError('用户不存在，请检查 GitHub 用户名或邮箱')
     } finally {
-      setGithubChecking(false)
+      setLoginChecking(false)
     }
-  }
-
-  const handleEmailLogin = () => {
-    setError('')
-    const email = emailInput.trim()
-    if (!email) { setError('请输入邮箱地址'); return }
-    const name = emailName.trim() || email.split('@')[0]
-    setUser({
-      email,
-      name,
-      avatar: gravatarUrl(email),
-    })
-    setEmailInput('')
-    setEmailName('')
   }
 
   const handleLogout = () => {
     setUser(null)
-  }
-
-  type SubmitParams = {
-    name: string
-    github?: string
-    emailHash?: string
-    avatar: string
-    content: string
-    website?: string
   }
 
   const handleSubmit = async () => {
@@ -118,7 +96,14 @@ export default function Messages() {
     if (!content.trim()) { setError('请填写留言内容'); return }
     if (content.trim().length > 2000) { setError('留言内容不能超过 2000 个字符'); return }
 
-    const params: SubmitParams = {
+    const params: {
+      name: string
+      github?: string
+      emailHash?: string
+      avatar: string
+      content: string
+      website?: string
+    } = {
       name: isGithubUser(user) ? (user.name || user.login) : user.name,
       avatar: isGithubUser(user) ? user.avatar_url : user.avatar,
       content: content.trim(),
@@ -130,7 +115,6 @@ export default function Messages() {
     } else {
       params.emailHash = user.email.toLowerCase().trim()
       if (!params.website) {
-        const domain = user.email.split('@')[1]
         params.website = `mailto:${user.email}`
       }
     }
@@ -150,153 +134,6 @@ export default function Messages() {
     }
   }
 
-  const loginPanel = () => {
-    if (user) {
-      return (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '10px 14px',
-          borderRadius: 12,
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border-color)',
-        }}>
-          <img
-            src={isGithubUser(user) ? user.avatar_url : user.avatar}
-            alt={user.name}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              border: '2px solid var(--border-color)',
-            }}
-          />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
-              {user.name}
-            </div>
-            {isGithubUser(user) ? (
-              <a
-                href={user.html_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}
-              >
-                @{user.login}
-              </a>
-            ) : (
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                ✉️ {(user as EmailUser).email}
-              </span>
-            )}
-          </div>
-          <Button type="link" onClick={handleLogout} style={{ fontSize: 12, padding: 0 }}>
-            切换账号
-          </Button>
-        </div>
-      )
-    }
-
-    if (loginMode === 'github') {
-      return (
-        <>
-          <div style={{
-            display: 'flex',
-            gap: 8,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}>
-            <Input
-              placeholder="GitHub 用户名"
-              value={githubInput}
-              onChange={(e) => setGithubInput(e.target.value)}
-              size="large"
-              style={{ flex: 1, minWidth: 180 }}
-              onKeyDown={(e) => e.key === 'Enter' && handleCheckGithub()}
-            />
-            <Button
-              type="primary"
-              onClick={handleCheckGithub}
-              loading={githubChecking}
-              disabled={!githubInput.trim() || githubChecking}
-            >
-              登录
-            </Button>
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
-            或者{' '}
-            <button
-              onClick={() => setLoginMode('email')}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#889df0',
-                cursor: 'pointer',
-                fontSize: 12,
-                textDecoration: 'underline',
-                padding: 0,
-              }}
-            >
-              使用邮箱登录
-            </button>
-          </div>
-        </>
-      )
-    }
-
-    return (
-      <>
-        <div style={{
-          display: 'flex',
-          gap: 8,
-          alignItems: 'center',
-          flexWrap: 'wrap',
-        }}>
-          <Input
-            placeholder="你的昵称"
-            value={emailName}
-            onChange={(e) => setEmailName(e.target.value)}
-            size="large"
-            style={{ flex: 1, minWidth: 150 }}
-          />
-          <Input
-            placeholder="邮箱地址 *"
-            value={emailInput}
-            onChange={(e) => setEmailInput(e.target.value)}
-            size="large"
-            style={{ flex: 1, minWidth: 200 }}
-            onKeyDown={(e) => e.key === 'Enter' && handleEmailLogin()}
-          />
-          <Button
-            type="primary"
-            onClick={handleEmailLogin}
-            disabled={!emailInput.trim()}
-          >
-            登录
-          </Button>
-        </div>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
-          或者{' '}
-          <button
-            onClick={() => setLoginMode('github')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#889df0',
-              cursor: 'pointer',
-              fontSize: 12,
-              textDecoration: 'underline',
-              padding: 0,
-            }}
-          >
-            使用 GitHub 登录
-          </button>
-        </div>
-      </>
-    )
-  }
-
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
@@ -309,7 +146,71 @@ export default function Messages() {
 
       <Card style={{ padding: isMobile ? 16 : 24, marginBottom: 24, background: 'var(--bg-card)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {loginPanel()}
+
+          {!user ? (
+            <div style={{
+              display: 'flex',
+              gap: 8,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}>
+              <Input
+                placeholder="GitHub 用户名 或 邮箱"
+                value={loginInput}
+                onChange={(e) => setLoginInput(e.target.value)}
+                size="large"
+                style={{ flex: 1, minWidth: 220 }}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+              />
+              <Button
+                type="primary"
+                onClick={handleLogin}
+                loading={loginChecking}
+                disabled={!loginInput.trim() || loginChecking}
+              >
+                登录
+              </Button>
+            </div>
+          ) : (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '10px 14px',
+              borderRadius: 12,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-color)',
+            }}>
+              <img
+                src={isGithubUser(user) ? user.avatar_url : user.avatar}
+                alt={user.name}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  border: '2px solid var(--border-color)',
+                }}
+              />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {user.name}
+                </div>
+                {isGithubUser(user) ? (
+                  <a href={user.html_url} target="_blank" rel="noopener noreferrer"
+                    style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>
+                    @{user.login}
+                  </a>
+                ) : (
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    ✉️ {(user as EmailUser).email}
+                  </span>
+                )}
+              </div>
+              <Button type="link" onClick={handleLogout} style={{ fontSize: 12, padding: 0 }}>
+                切换账号
+              </Button>
+            </div>
+          )}
 
           {user && (
             <>
@@ -420,50 +321,28 @@ export default function Messages() {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     {msg.avatar ? (
-                      <img
-                        src={msg.avatar}
-                        alt={msg.name}
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: '50%',
-                          border: '2px solid var(--border-color)',
-                        }}
-                      />
+                      <img src={msg.avatar} alt={msg.name} style={{
+                        width: 36, height: 36, borderRadius: '50%',
+                        border: '2px solid var(--border-color)',
+                      }} />
                     ) : (
                       <div style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: '50%',
+                        width: 36, height: 36, borderRadius: '50%',
                         background: 'linear-gradient(135deg, #b7c6e5, #889df0)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#fff',
-                        fontSize: 15,
-                        fontWeight: 700,
-                        flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#fff', fontSize: 15, fontWeight: 700, flexShrink: 0,
                       }}>
                         {msg.name.charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div>
                       <div style={{
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: 'var(--text-primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        flexWrap: 'wrap',
+                        fontSize: 14, fontWeight: 700, color: 'var(--text-primary)',
+                        display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
                       }}>
                         {msg.github ? (
-                          <a
-                            href={`https://github.com/${msg.github}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}
-                          >
+                          <a href={`https://github.com/${msg.github}`} target="_blank" rel="noopener noreferrer"
+                            style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
                             {msg.name}
                             <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.4 }}>
                               <path fillRule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
@@ -476,9 +355,8 @@ export default function Messages() {
                           </span>
                         )}
                         {msg.website && !msg.website.startsWith('mailto:') && (
-                          <a href={msg.website} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#889df0', textDecoration: 'none' }}>
-                            🌐
-                          </a>
+                          <a href={msg.website} target="_blank" rel="noopener noreferrer"
+                            style={{ fontSize: 11, color: '#889df0', textDecoration: 'none' }}>🌐</a>
                         )}
                         {msg.email && (
                           <span style={{ fontSize: 10, color: 'var(--text-muted)', opacity: 0.5 }}>
@@ -493,11 +371,8 @@ export default function Messages() {
                   </div>
                 </div>
                 <p style={{
-                  fontSize: 14,
-                  lineHeight: 1.7,
-                  color: 'var(--markdown-text)',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
+                  fontSize: 14, lineHeight: 1.7, color: 'var(--markdown-text)',
+                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                 }}>
                   {msg.content}
                 </p>

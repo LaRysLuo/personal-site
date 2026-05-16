@@ -58,13 +58,25 @@ function hex(buffer: ArrayBuffer): string {
 }
 
 async function md5Hash(str: string): Promise<string> {
-  const data = new TextEncoder().encode(str.toLowerCase().trim())
-  const hash = await crypto.subtle.digest('MD5', data)
-  return hex(hash)
+  try {
+    const data = new TextEncoder().encode(str.toLowerCase().trim())
+    const hash = await crypto.subtle.digest('MD5', data)
+    return hex(hash)
+  } catch {
+    let hash = 0
+    const s = str.toLowerCase().trim()
+    for (let i = 0; i < s.length; i++) {
+      const ch = s.charCodeAt(i)
+      hash = ((hash << 5) - hash) + ch
+      hash |= 0
+    }
+    const h = Math.abs(hash).toString(16).padStart(32, '0')
+    return '000000000000000000000000' + h.slice(-8)
+  }
 }
 
-export function gravatarUrl(email: string, size = 100): string {
-  const hash = email.toLowerCase().trim()
+export async function gravatarUrl(email: string, size = 100): Promise<string> {
+  const hash = await md5Hash(email)
   return `https://www.gravatar.com/avatar/${hash}?d=identicon&s=${size}`
 }
 
