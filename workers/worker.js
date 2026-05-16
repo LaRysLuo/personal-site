@@ -26,6 +26,33 @@ export default {
     }
 
     try {
+      if (request.method === 'GET' && url.pathname.startsWith('/api/github-user/')) {
+        const username = url.pathname.replace('/api/github-user/', '')
+        if (!username) throw new Error('Missing username')
+        const ghResp = await fetch(`https://api.github.com/users/${username}`, {
+          headers: { 'User-Agent': 'cloudflare-worker-personal-site' },
+        })
+        if (!ghResp.ok) {
+          return new Response(JSON.stringify({ ok: false, error: 'GitHub 用户不存在' }), {
+            status: 404,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
+          })
+        }
+        const ghData = await ghResp.json()
+        return new Response(JSON.stringify({
+          ok: true,
+          user: {
+            login: ghData.login,
+            name: ghData.name || ghData.login,
+            avatar_url: ghData.avatar_url,
+            html_url: ghData.html_url,
+            blog: ghData.blog || '',
+          },
+        }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
+        })
+      }
+
       if (request.method === 'GET' && url.pathname === '/api/messages') {
         const raw = await env.MESSAGES_KV.get(KV_KEY, 'text')
         const messages = raw ? JSON.parse(raw) : []
