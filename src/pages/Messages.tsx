@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Button, Input, Card, Divider, Icon } from 'animal-island-ui'
-import { loadMessages, postMessage, fetchGitHubUser, type Message, type GitHubUser } from '../utils/messageAPI'
+import { Button, Card, Divider, Icon } from 'animal-island-ui'
+import { loadMessages, postMessage, login, logout, me, setToken, getToken, type Message, type SessionUser } from '../utils/messageAPI'
 import { useIsMobile } from '../utils/responsive'
 import { usePageView } from '../utils/usePageView'
 
@@ -23,9 +23,9 @@ const GRADIENTS = [
   ['#d7ccc8', '#4e342e'],
 ]
 
-function hash(name: string): number {
+function hash(s: string): number {
   let h = 0
-  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h)
+  for (let i = 0; i < s.length; i++) h = s.charCodeAt(i) + ((h << 5) - h)
   return Math.abs(h)
 }
 
@@ -48,12 +48,9 @@ export default function Messages() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  const [user, setUser] = useState<GitHubUser | null>(null)
-  const [loginInput, setLoginInput] = useState('')
-  const [loginChecking, setLoginChecking] = useState(false)
-
+  const [user, setUser] = useState<SessionUser | null>(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
   const [content, setContent] = useState('')
-  const [website, setWebsite] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const isMobile = useIsMobile()
@@ -72,52 +69,48 @@ export default function Messages() {
     }
   }, [])
 
+  // 初始化：处理 OAuth 回调 token + 检查登录状态
+  useEffect(() => {
+    const tokenFromUrl = new URLSearchParams(window.location.search).get('token')
+    if (tokenFromUrl) {
+      setToken(tokenFromUrl)
+      window.history.replaceState(null, '', window.location.pathname + window.location.hash)
+    }
+
+    const existingToken = getToken()
+    if (existingToken) {
+      me()
+        .then((u) => setUser(u))
+        .catch(() => setUser(null))
+        .finally(() => setCheckingAuth(false))
+    } else {
+      setCheckingAuth(false)
+    }
+  }, [])
+
   useEffect(() => { load() }, [load])
 
-  const handleLogin = async () => {
-    const input = loginInput.trim()
-    if (!input) return
-    setLoginChecking(true)
-    setError('')
-    try {
-      const u = await fetchGitHubUser(input)
-      setUser(u)
-      setLoginInput('')
-    } catch {
-      setError('GitHub 用户不存在')
-    } finally {
-      setLoginChecking(false)
-    }
-  }
-
   const handleSubmit = async () => {
-    if (!user) { setError('请先登录'); return }
     if (!content.trim()) { setError('请填写留言内容'); return }
     if (content.trim().length > 2000) { setError('留言不能超过 2000 字'); return }
 
     setSubmitting(true)
     setError('')
     try {
-      const msg = await postMessage({
-        name: user.name || user.login,
-        github: user.login,
-        avatar: user.avatar_url,
-        content: content.trim(),
-        website: website.trim() || undefined,
-      })
+      const msg = await postMessage(content.trim())
       setMessages([msg, ...messages])
       setContent('')
-      setWebsite('')
       setSuccess('留言发布成功 ✨')
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
+      if (e.message.includes('登录') || e.message.includes('过期')) {
+        setUser(null)
+      }
       setError(e.message)
     } finally {
       setSubmitting(false)
     }
   }
-
-  const g = user ? GRADIENTS[hash(user.login) % GRADIENTS.length] : GRADIENTS[0]
 
   return (
     <div>
@@ -137,31 +130,8 @@ export default function Messages() {
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-          {!user ? (
-            <div style={{
-              display: 'flex',
-              gap: 10,
-              alignItems: 'center',
-              flexWrap: 'wrap',
-            }}>
-              <Input
-                placeholder="输入 GitHub 用户名"
-                value={loginInput}
-                onChange={(e) => setLoginInput(e.target.value)}
-                size="large"
-                style={{ flex: 1, minWidth: 200 }}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-              />
-              <Button
-                type="primary"
-                onClick={handleLogin}
-                loading={loginChecking}
-                disabled={!loginInput.trim()}
-              >
-                登录
-              </Button>
-            </div>
-          ) : (
+          {/* 登录/用户信息 */}
+          {checkingAuth ? null : user ? (
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -181,78 +151,80 @@ export default function Messages() {
               />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {user.name || user.login}
+                  {user.name}
                 </div>
                 <a href={user.html_url} target="_blank" rel="noopener noreferrer"
                   style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>
                   @{user.login}
                 </a>
               </div>
-              <button onClick={() => setUser(null)}
+              <button onClick={() => { logout(); setUser(null) }}
                 style={{
                   background: 'none', border: 'none', color: 'var(--text-muted)',
                   fontSize: 12, cursor: 'pointer', padding: '4px 8px',
                   borderRadius: 6,
                 }}>
-                切换
+                退出
               </button>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>
+                使用 GitHub 账号登录后留言
+              </p>
+              <Button type="primary" onClick={login}>
+                登录 GitHub
+              </Button>
             </div>
           )}
 
+          {/* 留言输入（仅登录后可见） */}
           {user && (
-            <>
-              <Input
-                placeholder="网站（可选）"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                size="large"
+            <div style={{
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 12,
+              overflow: 'hidden',
+            }}>
+              <textarea
+                placeholder="写下你想说的话..."
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                maxLength={2000}
+                style={{
+                  width: '100%',
+                  minHeight: 110,
+                  padding: 14,
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'var(--text-primary)',
+                  fontSize: 14,
+                  fontFamily: 'inherit',
+                  lineHeight: 1.6,
+                  resize: 'vertical',
+                  outline: 'none',
+                }}
               />
               <div style={{
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 12,
-                overflow: 'hidden',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '8px 14px',
+                borderTop: '1px solid var(--border-color)',
               }}>
-                <textarea
-                  placeholder="写下你想说的话..."
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  maxLength={2000}
-                  style={{
-                    width: '100%',
-                    minHeight: 110,
-                    padding: 14,
-                    border: 'none',
-                    background: 'transparent',
-                    color: 'var(--text-primary)',
-                    fontSize: 14,
-                    fontFamily: 'inherit',
-                    lineHeight: 1.6,
-                    resize: 'vertical',
-                    outline: 'none',
-                  }}
-                />
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '8px 14px',
-                  borderTop: '1px solid var(--border-color)',
-                }}>
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    {content.length}/2000
-                  </span>
-                  <Button
-                    type="primary"
-                    onClick={handleSubmit}
-                    loading={submitting}
-                    disabled={!content.trim() || submitting}
-                  >
-                    发布留言
-                  </Button>
-                </div>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  {content.length}/2000
+                </span>
+                <Button
+                  type="primary"
+                  onClick={handleSubmit}
+                  loading={submitting}
+                  disabled={!content.trim() || submitting}
+                >
+                  发布留言
+                </Button>
               </div>
-            </>
+            </div>
           )}
         </div>
 
@@ -339,18 +311,9 @@ export default function Messages() {
                         display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
                       }}>
                         <a href={`https://github.com/${msg.github}`} target="_blank" rel="noopener noreferrer"
-                          style={{
-                            fontSize: 14, fontWeight: 700, color: 'var(--text-primary)',
-                            textDecoration: 'none',
-                          }}>
+                          style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', textDecoration: 'none' }}>
                           {msg.name}
                         </a>
-                        {msg.website && (
-                          <a href={msg.website} target="_blank" rel="noopener noreferrer"
-                            style={{ fontSize: 11, color: '#889df0', textDecoration: 'none' }}>
-                            🌐
-                          </a>
-                        )}
                         <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
                           {fmtDate(msg.createdAt)}
                         </span>
