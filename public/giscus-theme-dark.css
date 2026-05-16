@@ -1,0 +1,104 @@
+/* Animal Island Giscus Theme - Dark */
+/* Matches the dark mode aesthetic */
+
+:root {
+  --color-primary: #e8dcc8;
+  --color-secondary: #b8a88a;
+  --color-tertiary: #8a7b66;
+
+  --color-background: #1a1a2e;
+  --color-background-secondary: #16213e;
+  --color-background-tertiary: #252540;
+
+  --color-border: #2a2a4e;
+  --color-border-secondary: #3a3a5e;
+
+  --color-text-primary: #e8dcc8;
+  --color-text-secondary: #b8a88a;
+  --color-text-tertiary: #8a7b66;
+
+  --color-link: #889df0;
+  --color-link-hover: #a8b8f5;
+
+  --color-icon: #8a7b66;
+  --color-icon-hover: #e8dcc8;
+
+  --color-btn-primary: #4a6fa5;
+  --color-btn-primary-hover: #5a7fb5;
+  --color-btn-primary-text: #ffffff;
+  --color-btn-primary-border: #5a7fb5;
+
+  --color-btn-secondary: #252540;
+  --color-btn-secondary-hover: #2a2a4e;
+  --color-btn-secondary-text: #e8dcc8;
+  --color-btn-secondary-border: #2a2a4e;
+
+  --color-input-bg: #252540;
+  --color-input-bg-hover: #2a2a4e;
+  --color-input-border: #2a2a4e;
+  --color-input-text: #e8dcc8;
+  --color-input-placeholder: #6a6a8e;
+
+  --color-timeline: #2a2a4e;
+  --color-timeline-badge-bg: #2a2a4e;
+
+  --color-socialCard-bg: #252540;
+  --color-socialCard-bg-hover: #2a2a44;
+
+  --color-box-header-bg: #1a1a2e;
+  --color-box-body-bg: #252540;
+
+  --color-header-text: #e8dcc8;
+  --color-header-bg: #16213e;
+
+  --color-global-nav-bg: #1a1a2e;
+  --color-global-nav-text: #e8dcc8;
+
+  --color-accent-fg: #889df0;
+  --color-accent-emphasis: #6b82e8;
+  --color-accent-muted: rgba(136, 157, 240, 0.15);
+
+  --color-success-fg: #72b872;
+  --color-success-emphasis: #5a9e5a;
+  --color-success-muted: rgba(138, 198, 138, 0.12);
+
+  --color-attention-fg: #d4a017;
+  --color-attention-emphasis: #b8890f;
+  --color-attention-muted: rgba(247, 205, 103, 0.12);
+
+  --color-severe-fg: #e68a2e;
+  --color-severe-emphasis: #c97a28;
+  --color-severe-muted: rgba(230, 138, 46, 0.12);
+
+  --color-danger-fg: #fc736d;
+  --color-danger-emphasis: #e05a54;
+  --color-danger-muted: rgba(252, 115, 109, 0.1);
+
+  --color-open-fg: #8ac68a;
+  --color-closed-fg: #fc736d;
+  --color-done-fg: #889df0;
+  --color-sponsors-fg: #bf6b9e;
+
+  --color-btn-bg: #252540;
+  --color-btn-hover: #2a2a4e;
+  --color-btn-active: #2a2a4e;
+  --color-btn-selected: #2a2a4e;
+  --color-btn-counter-bg: #2a2a4e;
+
+  --color-tooltip-bg: #e8dcc8;
+  --color-tooltip-text: #1a1a2e;
+
+  --color-notifications-button-bg: #252540;
+  --color-notifications-button-hover: #2a2a4e;
+  --color-notifications-button-text: #e8dcc8;
+
+  --color-label-bg: #252540;
+  --color-label-text: #e8dcc8;
+  --color-label-border: #2a2a4e;
+
+  --color-shadow: rgba(0, 0, 0, 0.2);
+
+  --color-badge-bg: #2a2a4e;
+  --color-badge-text: #e8dcc8;
+  --color-badge-border: transparent;
+}
