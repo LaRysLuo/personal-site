@@ -3,7 +3,7 @@ main = "src/index.ts"
 
 [[kv_namespaces]]
 binding = "MESSAGES_KV"
-id = "your-kv-namespace-id-here"
+id = "39cdffdcb03747b4a5051704b93cbcad"
 
 [env.production]
 vars = { ENVIRONMENT = "production" }

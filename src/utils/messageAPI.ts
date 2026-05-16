@@ -6,7 +6,7 @@ export interface Message {
   createdAt: string
 }
 
-const API_BASE = 'https://personal-site-messages.larysluo.workers.dev'
+const API_BASE = 'https://personal-site-messages.larysword.workers.dev'
 
 export async function fetchMessages(): Promise<Message[]> {
   const resp = await fetch(`${API_BASE}/api/messages`)
