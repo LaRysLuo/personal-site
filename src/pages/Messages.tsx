@@ -1,138 +1,39 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Button, Input, Card, Divider, Icon } from 'animal-island-ui'
-import { loadMessages, postMessage, fetchGitHubUser, gravatarUrl, type Message, type GitHubUser, type EmailUser } from '../utils/messageStore'
+import { useEffect, useRef } from 'react'
+import { Icon, Divider } from 'animal-island-ui'
 import { useIsMobile } from '../utils/responsive'
 import { usePageView } from '../utils/usePageView'
 
-type User = GitHubUser | EmailUser
-
-function isGithubUser(u: User): u is GitHubUser {
-  return 'login' in u
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  const now = new Date()
-  const diff = now.getTime() - d.getTime()
-  const mins = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
-
-  if (mins < 1) return '刚刚'
-  if (mins < 60) return `${mins} 分钟前`
-  if (hours < 24) return `${hours} 小时前`
-  if (days < 7) return `${days} 天前`
-
-  return d.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
-
 export default function Messages() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [loading, setLoading] = useState(true)
-  const [content, setContent] = useState('')
-  const [website, setWebsite] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const isMobile = useIsMobile()
-
-  const [user, setUser] = useState<User | null>(null)
-  const [loginInput, setLoginInput] = useState('')
-  const [loginChecking, setLoginChecking] = useState(false)
-
+  const giscusRef = useRef<HTMLDivElement>(null)
   usePageView('/messages')
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true)
-      const data = await loadMessages()
-      setMessages(data)
-    } catch {
-      setError('加载留言失败')
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    const el = giscusRef.current
+    if (!el) return
+
+    const script = document.createElement('script')
+    script.src = 'https://giscus.app/client.js'
+    script.setAttribute('data-repo', 'LaRysLuo/personal-site')
+    script.setAttribute('data-repo-id', 'R_kgDOSe3efw')
+    script.setAttribute('data-category', 'General')
+    script.setAttribute('data-category-id', 'DIC_kwDOSe3ef84C9Kk-')
+    script.setAttribute('data-mapping', 'pathname')
+    script.setAttribute('data-strict', '0')
+    script.setAttribute('data-reactions-enabled', '1')
+    script.setAttribute('data-emit-metadata', '0')
+    script.setAttribute('data-input-position', 'bottom')
+    script.setAttribute('data-theme', 'light')
+    script.setAttribute('data-lang', 'zh-CN')
+    script.setAttribute('crossorigin', 'anonymous')
+    script.async = true
+
+    el.appendChild(script)
+
+    return () => {
+      el.innerHTML = ''
     }
   }, [])
-
-  useEffect(() => {
-    load()
-  }, [load])
-
-  const handleLogin = async () => {
-    const input = loginInput.trim()
-    if (!input) return
-    setError('')
-    setLoginChecking(true)
-    try {
-      if (input.includes('@')) {
-        const name = input.split('@')[0]
-        const avatar = await gravatarUrl(input)
-        setUser({ email: input, name, avatar } as EmailUser)
-        setLoginInput('')
-      } else {
-        const u = await fetchGitHubUser(input)
-        setUser(u)
-        setLoginInput('')
-      }
-    } catch {
-      setError('用户不存在，请检查 GitHub 用户名或邮箱')
-    } finally {
-      setLoginChecking(false)
-    }
-  }
-
-  const handleLogout = () => {
-    setUser(null)
-  }
-
-  const handleSubmit = async () => {
-    setError('')
-    setSuccess('')
-    if (!user) { setError('请先登录'); return }
-    if (!content.trim()) { setError('请填写留言内容'); return }
-    if (content.trim().length > 2000) { setError('留言内容不能超过 2000 个字符'); return }
-
-    const params: {
-      name: string
-      github?: string
-      emailHash?: string
-      avatar: string
-      content: string
-      website?: string
-    } = {
-      name: isGithubUser(user) ? (user.name || user.login) : user.name,
-      avatar: isGithubUser(user) ? user.avatar_url : user.avatar,
-      content: content.trim(),
-      website: website.trim() || undefined,
-    }
-
-    if (isGithubUser(user)) {
-      params.github = user.login
-    } else {
-      params.emailHash = user.email.toLowerCase().trim()
-      if (!params.website) {
-        params.website = `mailto:${user.email}`
-      }
-    }
-
-    setSubmitting(true)
-    try {
-      const msg = await postMessage(params)
-      setMessages([msg, ...messages])
-      setContent('')
-      setWebsite('')
-      setSuccess('留言发布成功！已保存到仓库 📦')
-      setTimeout(() => setSuccess(''), 4000)
-    } catch (e: any) {
-      setError(e.message)
-    } finally {
-      setSubmitting(false)
-    }
-  }
 
   return (
     <div>
@@ -144,242 +45,29 @@ export default function Messages() {
         留下你想说的话吧～ 对游戏、博文、或者本网站的任何想法都欢迎 ✨
       </p>
 
-      <Card style={{ padding: isMobile ? 16 : 24, marginBottom: 24, background: 'var(--bg-card)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-          {!user ? (
-            <div style={{
-              display: 'flex',
-              gap: 8,
-              alignItems: 'center',
-              flexWrap: 'wrap',
-            }}>
-              <Input
-                placeholder="GitHub 用户名 或 邮箱"
-                value={loginInput}
-                onChange={(e) => setLoginInput(e.target.value)}
-                size="large"
-                style={{ flex: 1, minWidth: 220 }}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-              />
-              <Button
-                type="primary"
-                onClick={handleLogin}
-                loading={loginChecking}
-                disabled={!loginInput.trim() || loginChecking}
-              >
-                登录
-              </Button>
-            </div>
-          ) : (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '10px 14px',
-              borderRadius: 12,
-              background: 'var(--bg-elevated)',
-              border: '1px solid var(--border-color)',
-            }}>
-              <img
-                src={isGithubUser(user) ? user.avatar_url : user.avatar}
-                alt={user.name}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  border: '2px solid var(--border-color)',
-                }}
-              />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {user.name}
-                </div>
-                {isGithubUser(user) ? (
-                  <a href={user.html_url} target="_blank" rel="noopener noreferrer"
-                    style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>
-                    @{user.login}
-                  </a>
-                ) : (
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    ✉️ {(user as EmailUser).email}
-                  </span>
-                )}
-              </div>
-              <Button type="link" onClick={handleLogout} style={{ fontSize: 12, padding: 0 }}>
-                切换账号
-              </Button>
-            </div>
-          )}
-
-          {user && (
-            <>
-              <Input
-                placeholder="网站（可选）"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                size="large"
-              />
-              <textarea
-                placeholder="写下你想说的话... *"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                maxLength={2000}
-                style={{
-                  width: '100%',
-                  minHeight: 100,
-                  padding: 12,
-                  borderRadius: 12,
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--bg-elevated)',
-                  color: 'var(--text-primary)',
-                  fontSize: 14,
-                  fontFamily: 'inherit',
-                  lineHeight: 1.6,
-                  resize: 'vertical',
-                  outline: 'none',
-                }}
-              />
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 8,
-              }}>
-                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  {content.length}/2000
-                </span>
-                <Button
-                  type="primary"
-                  onClick={handleSubmit}
-                  loading={submitting}
-                  disabled={!content.trim() || submitting}
-                >
-                  发布留言
-                </Button>
-              </div>
-            </>
-          )}
-
-          {error && (
-            <div style={{ fontSize: 13, color: '#fc736d', padding: '8px 12px', background: 'rgba(252,115,109,0.1)', borderRadius: 8 }}>
-              {error}
-            </div>
-          )}
-          {success && (
-            <div style={{ fontSize: 13, color: '#8ac68a', padding: '8px 12px', background: 'rgba(138,198,138,0.1)', borderRadius: 8 }}>
-              {success}
-            </div>
-          )}
-        </div>
-      </Card>
+      <div
+        ref={giscusRef}
+        style={{
+          minHeight: 300,
+          padding: isMobile ? 8 : 0,
+        }}
+      />
 
       <Divider type="line-brown" />
 
-      <div style={{ marginTop: 24 }}>
-        <div style={{
-          fontSize: isMobile ? 15 : 16,
-          fontWeight: 700,
-          color: 'var(--text-primary)',
-          marginBottom: 16,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-        }}>
-          <span>💬 全部留言</span>
-          <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-muted)' }}>
-            {messages.length} 条
-          </span>
-        </div>
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>
-            加载留言中...
-          </div>
-        ) : messages.length === 0 ? (
-          <Card style={{ padding: 32, textAlign: 'center', background: 'var(--bg-card)' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📝</div>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
-              还没有留言，来当第一个留言的人吧！
-            </p>
-          </Card>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {messages.map((msg) => (
-              <Card key={msg.id} style={{
-                padding: isMobile ? 14 : 18,
-                background: 'var(--bg-card)',
-              }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  marginBottom: 8,
-                  flexWrap: 'wrap',
-                  gap: 4,
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {msg.avatar ? (
-                      <img src={msg.avatar} alt={msg.name} style={{
-                        width: 36, height: 36, borderRadius: '50%',
-                        border: '2px solid var(--border-color)',
-                      }} />
-                    ) : (
-                      <div style={{
-                        width: 36, height: 36, borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #b7c6e5, #889df0)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#fff', fontSize: 15, fontWeight: 700, flexShrink: 0,
-                      }}>
-                        {msg.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div>
-                      <div style={{
-                        fontSize: 14, fontWeight: 700, color: 'var(--text-primary)',
-                        display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
-                      }}>
-                        {msg.github ? (
-                          <a href={`https://github.com/${msg.github}`} target="_blank" rel="noopener noreferrer"
-                            style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            {msg.name}
-                            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.4 }}>
-                              <path fillRule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-                            </svg>
-                          </a>
-                        ) : (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            {msg.name}
-                            <span style={{ fontSize: 10, opacity: 0.4 }}>✉️</span>
-                          </span>
-                        )}
-                        {msg.website && !msg.website.startsWith('mailto:') && (
-                          <a href={msg.website} target="_blank" rel="noopener noreferrer"
-                            style={{ fontSize: 11, color: '#889df0', textDecoration: 'none' }}>🌐</a>
-                        )}
-                        {msg.email && (
-                          <span style={{ fontSize: 10, color: 'var(--text-muted)', opacity: 0.5 }}>
-                            ({msg.email.slice(0, 6)}...)
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        {formatDate(msg.createdAt)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <p style={{
-                  fontSize: 14, lineHeight: 1.7, color: 'var(--markdown-text)',
-                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                }}>
-                  {msg.content}
-                </p>
-              </Card>
-            ))}
-          </div>
-        )}
+      <div style={{
+        fontSize: 13,
+        color: 'var(--text-muted)',
+        textAlign: 'center',
+        marginTop: 32,
+        lineHeight: 1.8,
+      }}>
+        <p>
+          留言由 <a href="https://giscus.app" target="_blank" rel="noopener noreferrer"
+            style={{ color: '#889df0', textDecoration: 'none' }}>Giscus</a> 驱动，
+          需要 <a href="https://github.com" target="_blank" rel="noopener noreferrer"
+            style={{ color: '#889df0', textDecoration: 'none' }}>GitHub</a> 账号登录
+        </p>
       </div>
     </div>
   )
