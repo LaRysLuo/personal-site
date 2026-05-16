@@ -23,7 +23,7 @@ export async function fetchGitHubUser(username: string): Promise<GitHubUser> {
     headers: { 'Cache-Control': 'no-cache' },
   })
   const data = await resp.json()
-  if (!data.ok) throw new Error('用户不存在')
+  if (!data.ok) throw new Error(data.error || '用户不存在')
   return data.user
 }
 
