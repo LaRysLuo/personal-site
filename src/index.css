@@ -1,0 +1,184 @@
+:root, [data-theme="light"] {
+  --bg-primary: #f7f3df;
+  --bg-secondary: #faf7ed;
+  --bg-elevated: #ffffff;
+  --bg-card: #ffffff;
+  --text-primary: #725d42;
+  --text-secondary: #8a7b66;
+  --text-muted: #a0936e;
+  --text-on-accent: #ffffff;
+  --border-color: #e8e2d6;
+  --nav-active-bg: linear-gradient(135deg, #b7c6e5, #a3b5db);
+  --nav-hover-bg: #ece6d8;
+  --markdown-text: #5a4a32;
+  --scrollbar-thumb: rgba(114, 93, 66, 0.2);
+  --scrollbar-thumb-hover: rgba(114, 93, 66, 0.35);
+  --bg-pattern: radial-gradient(circle at 20% 50%, rgba(183,198,229,0.12) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(130,213,187,0.1) 0%, transparent 50%);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-elevated: #252540;
+  --bg-card: #2a2a44;
+  --text-primary: #e8dcc8;
+  --text-secondary: #b8a88a;
+  --text-muted: #8a7b66;
+  --text-on-accent: #ffffff;
+  --border-color: #2a2a4e;
+  --nav-active-bg: linear-gradient(135deg, #4a6fa5, #3a5a8a);
+  --nav-hover-bg: #2a2a44;
+  --markdown-text: #d4c9b0;
+  --scrollbar-thumb: rgba(232, 220, 200, 0.2);
+  --scrollbar-thumb-hover: rgba(232, 220, 200, 0.35);
+  --bg-pattern: radial-gradient(circle at 20% 50%, rgba(74,111,165,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(130,213,187,0.06) 0%, transparent 50%);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: "Nunito", "Noto Sans SC", "Zen Maru Gothic", -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+  margin: 1.2em 0 0.5em;
+  color: var(--text-primary);
+}
+
+.markdown-content h1 { font-size: 1.6rem; }
+.markdown-content h2 { font-size: 1.3rem; }
+.markdown-content h3 { font-size: 1.1rem; }
+
+.markdown-content p {
+  margin: 0.6em 0;
+  line-height: 1.8;
+  color: var(--markdown-text);
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+  line-height: 1.8;
+  color: var(--markdown-text);
+}
+
+.markdown-content blockquote {
+  margin: 0.8em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid #b7c6e5;
+  background: rgba(183, 198, 229, 0.15);
+  border-radius: 0 8px 8px 0;
+  color: var(--text-secondary);
+}
+
+.markdown-content code:not(pre code) {
+  background: rgba(183, 198, 229, 0.25);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: var(--text-primary);
+}
+
+.markdown-content pre {
+  margin: 0.8em 0;
+  padding: 1em;
+  background: #2b2118;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.markdown-content pre code {
+  color: #e8dcc8;
+  font-size: 0.9em;
+  line-height: 1.6;
+}
+
+.markdown-content hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border-color), transparent);
+  margin: 1.5em 0;
+}
+
+.markdown-content img {
+  max-width: 100%;
+  border-radius: 12px;
+  margin: 1em 0;
+}
+
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.markdown-content th,
+.markdown-content td {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.markdown-content th {
+  background: rgba(183, 198, 229, 0.2);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.markdown-content td {
+  color: var(--markdown-text);
+}
