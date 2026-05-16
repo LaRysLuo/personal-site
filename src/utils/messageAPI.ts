@@ -45,11 +45,16 @@ export function logout(): void {
 }
 
 export async function me(): Promise<SessionUser> {
+  const token = getToken()
+  if (!token) throw new Error('未登录')
   const resp = await fetch(`${API_BASE}/api/me`, {
-    headers: { ...getAuthHeaders(), 'Cache-Control': 'no-cache' },
+    headers: { 'Authorization': `Bearer ${token}`, 'Cache-Control': 'no-cache' },
   })
   const data = await resp.json()
-  if (!data.ok) throw new Error(data.error || '未登录')
+  if (!data.ok) {
+    clearToken()
+    throw new Error(data.error || '登录已失效')
+  }
   return data.user
 }
 
