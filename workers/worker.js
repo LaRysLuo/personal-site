@@ -10,8 +10,7 @@ const GITHUB_REDIRECT_URI = 'https://personal-site-messages.larysword.workers.de
 const FRONTEND_URL = 'https://larysluo.github.io/personal-site'
 const OWNER_LOGIN = 'LaRysLuo'
 const NOTIFY_EMAIL = 'larysword@gmail.com'
-
-// TODO: 注册 SendGrid 后把 API Key 填到这里
+// API Key 在 Cloudflare 端已配置，公开仓库不包含
 const SENDGRID_API_KEY = ''
 
 const SESSION_TTL = 60 * 60 * 24 * 30
@@ -58,7 +57,7 @@ async function sendEmailNotification(name, login, content, createdAt) {
           to: [{ email: NOTIFY_EMAIL }],
           subject: `💬 留言板新消息 - ${name}`,
         }],
-        from: { email: NOTIFY_EMAIL },
+        from: { email: NOTIFY_EMAIL, name: '悠月的小世界 · 留言板' },
         content: [{
           type: 'text/plain',
           value: [
