@@ -10,8 +10,6 @@ const GITHUB_REDIRECT_URI = 'https://personal-site-messages.larysword.workers.de
 const FRONTEND_URL = 'https://larysluo.github.io/personal-site'
 const OWNER_LOGIN = 'LaRysLuo'
 const NOTIFY_EMAIL = 'larysword@gmail.com'
-// API Key 在 Cloudflare 端已配置，公开仓库不包含
-const SENDGRID_API_KEY = ''
 
 const SESSION_TTL = 60 * 60 * 24 * 30
 const KV_KEY = 'messages'
@@ -42,14 +40,14 @@ function respond(data, status, origin) {
   })
 }
 
-async function sendEmailNotification(name, login, content, createdAt) {
-  if (!SENDGRID_API_KEY) return
+async function sendEmailNotification(name, login, content, createdAt, sendgridKey) {
+  if (!sendgridKey) return
 
   try {
     await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${SENDGRID_API_KEY}`,
+        'Authorization': `Bearer ${sendgridKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -186,7 +184,7 @@ export default {
 
         // 不是站长留言时发邮件通知
         if (!isOwner) {
-          sendEmailNotification(msg.name, msg.github, msg.content, msg.createdAt)
+          sendEmailNotification(msg.name, msg.github, msg.content, msg.createdAt, env.SENDGRID_API_KEY)
         }
 
         return respond({ ok: true, message: msg }, 201, origin)
